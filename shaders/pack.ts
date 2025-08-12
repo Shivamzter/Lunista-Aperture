@@ -18,7 +18,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .createTexture("mainTexture")
     .width(screenWidth)
     .height(screenHeight)
-    .format(Format.RGBA8)
+    .format(Format.R11F_G11F_B10F)
     .build();
 
   //   let finalTexture = pipeline
@@ -29,21 +29,21 @@ export function configurePipeline(pipeline: PipelineConfig): void {
   //     .build();
 
   //   A basic object shader. This shader is marked as BASIC, which means all objects will fall back to it.
-  //   pipeline
-  //     .createObjectShader("basic", Usage.BASIC)
-  //     .vertex("objects/basic.vsh")
-  //     .fragment("objects/basic.fsh")
-  //     .target(0, mainTexture)
-  //     .compile();
+  pipeline
+    .createObjectShader("basic", Usage.BASIC)
+    .vertex("objects/basic.vsh")
+    .fragment("objects/basic.fsh")
+    .target(0, mainTexture)
+    .compile();
 
   //   The following is a copy of the basic shader, but with DISABLE_FOG defined to avoid fog being run on the sky.
-  //   pipeline
-  //     .createObjectShader("basic", Usage.SKY_TEXTURES)
-  //     .vertex("objects/basic.vsh")
-  //     .fragment("objects/basic.fsh")
-  //     .target(0, mainTexture)
-  //     .define("DISABLE_FOG", "1")
-  //     .compile();
+  pipeline
+    .createObjectShader("basic", Usage.SKY_TEXTURES)
+    .vertex("objects/basic.vsh")
+    .fragment("objects/basic.fsh")
+    .target(0, mainTexture)
+    .define("DISABLE_FOG", "1")
+    .compile();
 
   // The following is a command list; the main way to do post processing and compute.
   // For this, we will be creating a POST_RENDER command list, which will run after everything.
@@ -53,6 +53,11 @@ export function configurePipeline(pipeline: PipelineConfig): void {
   postRender
     .createComposite("composite")
     .fragment("post/composite.fsh")
+    .target(0, mainTexture)
+    .compile();
+  postRender
+    .createComposite("tonemap")
+    .fragment("post/tonemap.fsh")
     .target(0, mainTexture)
     .compile();
 

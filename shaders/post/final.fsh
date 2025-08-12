@@ -8,7 +8,7 @@ layout(location = 0) out vec4 fragColor;
 
 void main() {
     vec4 color = texture(mainTexture, uv);
-    color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
+    
 
-    // fragColor = color;
+    fragColor = color;
 }
