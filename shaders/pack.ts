@@ -18,7 +18,19 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .createTexture("mainTexture")
     .width(screenWidth)
     .height(screenHeight)
-    .format(Format.R11F_G11F_B10F)
+    .format(Format.RGBA16F)
+    .build();
+
+  let lightmapTex = pipeline
+    .createTexture("lightmapTex")
+    .width(screenWidth)
+    .height(screenHeight)
+    .build();
+
+  let normalTex = pipeline
+    .createTexture("normalTex")
+    .width(screenWidth)
+    .height(screenHeight)
     .build();
 
   //   let finalTexture = pipeline
@@ -34,16 +46,24 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .vertex("objects/basic.vsh")
     .fragment("objects/basic.fsh")
     .target(0, mainTexture)
+    .target(1, lightmapTex)
+    .target(2, normalTex)
+    .compile();
+
+  pipeline
+    .createObjectShader("basic", Usage.SHADOW)
+    .vertex("objects/shadow.vsh")
+    .fragment("objects/shadow.fsh")
     .compile();
 
   //   The following is a copy of the basic shader, but with DISABLE_FOG defined to avoid fog being run on the sky.
-  pipeline
-    .createObjectShader("basic", Usage.SKY_TEXTURES)
-    .vertex("objects/basic.vsh")
-    .fragment("objects/basic.fsh")
-    .target(0, mainTexture)
-    .define("DISABLE_FOG", "1")
-    .compile();
+  // pipeline
+  //   .createObjectShader("basic", Usage.SKY_TEXTURES)
+  //   .vertex("objects/basic.vsh")
+  //   .fragment("objects/basic.fsh")
+  //   .target(0, mainTexture)
+  //   .define("DISABLE_FOG", "1")
+  //   .compile();
 
   // The following is a command list; the main way to do post processing and compute.
   // For this, we will be creating a POST_RENDER command list, which will run after everything.
@@ -51,8 +71,8 @@ export function configurePipeline(pipeline: PipelineConfig): void {
 
   // For composites, you can choose to have a vertex shader or not. If you choose not to, one will be provided with vec2 uv as a default input.
   postRender
-    .createComposite("composite")
-    .fragment("post/composite.fsh")
+    .createComposite("lighting")
+    .fragment("post/lighting.fsh")
     .target(0, mainTexture)
     .compile();
   postRender
