@@ -33,6 +33,13 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .height(screenHeight)
     .build();
 
+  let specularTex = pipeline
+    .createTexture("specularTex")
+    .width(screenWidth)
+    .height(screenHeight)
+    .format(Format.RGBA8)
+    .build();
+
   //   let finalTexture = pipeline
   //     .createTexture("finalTexture")
   //     .width(screenWidth)
@@ -48,6 +55,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .target(0, mainTexture)
     .target(1, lightmapTex)
     .target(2, normalTex)
+    .target(3, specularTex)
     .compile();
 
   pipeline
