@@ -24,7 +24,7 @@ bool isNight = ap.world.time >= 13000 && ap.world.time < 24000;
 const vec3 blocklightColor = vec3(1.0, 0.5, 0.08);
 const vec3 skylightColor = vec3(0.05, 0.15, 0.3);
 
-const vec3 sunlightColor = vec3(23.47, 21.31, 20.79); // vec3(23.47, 21.31, 20.79) BRDF
+const vec3 sunlightColor = vec3(23.47, 21.31, 20.79) * 2.5; // vec3(23.47, 21.31, 20.79) BRDF
 const vec3 moonlightColor = vec3(0.1, 0.1, 0.3);
 vec3 lightColor = isNight ? moonlightColor : sunlightColor;
 
@@ -60,7 +60,7 @@ void main() {
 	vec3 color = texture(mainTexture, uv).rgb;
   vec2 lightmap = texture(lightmapTex, uv).rg;
   vec4 labSpecular = texture(specularTex, uv);
-  vec3 encodedNormal = texture(normalTex, uv).rgb;
+  vec4 encodedNormal = texture(normalTex, uv);
   vec3 labNormal = texture(labNormalTex, uv).rgb;
   vec3 flatNormal = texture(flatNormalTex, uv).rgb;
 
@@ -70,7 +70,9 @@ void main() {
   //   return;
   // }
 
-  vec3 encodedNorm = normalize(encodedNormal * 2.0 - 1.0);
+  vec3 encodedNorm = normalize(encodedNormal.rgb * 2.0 - 1.0);
+  float vanillaAO = encodedNormal.a;
+
   vec3 flatNorm = normalize(flatNormal * 2.0 - 1.0);
 
   float labAO = labNormal.b;
@@ -104,7 +106,7 @@ void main() {
   vec3 shadow = get_shadowed(playerFeetPos, flatNorm, lightDir);
 
   vec3 directLight = brdf * shadow;
-  vec3 indirectLight = (blocklight + skylight + ambient) * labAO;
+  vec3 indirectLight = (blocklight + skylight + ambient) * vanillaAO;
 
   // vec3 shadow_view_normal = flatNorm + ap.camera.viewInv[3].xyz; // player space
 
@@ -113,6 +115,7 @@ void main() {
 
   color.rgb *= indirectLight + directLight;
   color.rgb += emissiveFinal;
+  color.rgb *= labAO; // Apply ambient occlusion
 
   // float d = -viewPos.z; // if viewPos is camera-space (z negative forward)
   // int ccascade = (d < 32.0) ? 0 : (d < 96.0) ? 1 : (d < 192.0) ? 2 : 3;

@@ -11,6 +11,7 @@ in vec2 uv;
 in vec2 light;
 in vec4 color;
 in vec3 normal;
+in float ao;
 
 in mat3 tbnMatrix;
 
@@ -25,7 +26,6 @@ void iris_emitFragment() {
 
     // Decode LabPBR normal
     labNormal = iris_sampleNormalMap(uv);
-    // labNormal = labNormal * 0.5 + 0.5;
     vec3 tangentNormal = labNormal.xyz * 2.0 - 1.0;
     tangentNormal.z = sqrt(1.0 - dot(tangentNormal.xy, tangentNormal.xy));
     tangentNormal = tbnMatrix * tangentNormal;
@@ -47,5 +47,5 @@ void iris_emitFragment() {
     
     flatNormal = normal * 0.5 + 0.5; // convert to [0, 1] range
     
-    encodedNormal = vec4(tangentNormal * 0.5 + 0.5, 1.0);
+    encodedNormal = vec4(tangentNormal * 0.5 + 0.5, ao);
 }

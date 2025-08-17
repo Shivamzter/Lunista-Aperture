@@ -4,6 +4,7 @@ out vec2 uv;
 out vec2 light;
 out vec4 color;
 out vec3 normal;
+out float ao;
 
 out mat3 tbnMatrix;
 
@@ -41,10 +42,11 @@ void iris_sendParameters(VertexData data) {
     uv = data.uv;
     light = data.light;
     color = data.color;
+    ao = data.ao;
 
     // vec3 normalizedNormal = normalize(data.normal - 0.5) * 2.0;
-    normal = (iris_normalMatrix * data.normal);
-    normal = mat3(ap.camera.viewInv) * normal; // view to player space
+    // normal = (iris_normalMatrix * data.normal);
+    // normal = mat3(ap.camera.viewInv) * normal; // view to player space
     // normal = normal + ap.camera.viewInv[3].xyz; // feet position in player space
 
 
@@ -52,7 +54,7 @@ void iris_sendParameters(VertexData data) {
     color.rgb = mix(data.overlayColor.rgb, data.color.rgb, data.overlayColor.a);
 
     // Add ambient occlusion
-    color.rgb *= data.ao;
+    // ao = data.ao;
 
     // from Jbritains Glint shader
     tbnMatrix[2] = normalize(mat3(iris_normalMatrix) * data.normal.xyz);
@@ -61,6 +63,7 @@ void iris_sendParameters(VertexData data) {
     cross(tbnMatrix[0], tbnMatrix[2]) * data.tangent.w
     );
 
+    normal = mat3(ap.camera.viewInv) * tbnMatrix[2]; // view to player space
     tbnMatrix = mat3(ap.camera.viewInv) * tbnMatrix; // view to player space
 
     // Used for fog later on.
