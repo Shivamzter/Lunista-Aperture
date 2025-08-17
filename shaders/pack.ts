@@ -29,11 +29,12 @@ export function configurePipeline(pipeline: PipelineConfig): void {
   // However, you are not limited by how many textures can be created.
   // The most important limitation is you should never read and write to the same texture in the same shader. (Using images avoids this limitation, but this is not covered here.)
 
-  let mainTexture = pipeline
+  const mainTexture = pipeline
     .createTexture("mainTexture")
+    .format(Format.RGBA16F)
     .width(screenWidth)
     .height(screenHeight)
-    .format(Format.RGBA16F)
+    .clear(true)
     .build();
 
   let lightmapTex = pipeline
@@ -54,16 +55,27 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .height(screenHeight)
     .format(Format.RGBA16F)
     .build();
+
   let labNormalTex = pipeline
     .createTexture("labNormalTex")
     .width(screenWidth)
     .height(screenHeight)
     .format(Format.RGBA8)
     .build();
+
   let flatNormalTex = pipeline
     .createTexture("flatNormalTex")
     .width(screenWidth)
     .height(screenHeight)
+    .build();
+
+  const bloomTex = pipeline
+    .createTexture("bloomTex")
+    .format(Format.RGBA16F)
+    .width(screenWidth)
+    .height(screenHeight)
+    .clear(true)
+    .mipmap(true)
     .build();
 
   //   let finalTexture = pipeline
@@ -106,16 +118,34 @@ export function configurePipeline(pipeline: PipelineConfig): void {
   let postRender = pipeline.forStage(Stage.POST_RENDER);
 
   // For composites, you can choose to have a vertex shader or not. If you choose not to, one will be provided with vec2 uv as a default input.
+
   postRender
     .createComposite("lighting")
+    .vertex("post/fullscreen_Pass.vsh")
     .fragment("post/lighting.fsh")
     .target(0, mainTexture)
+    .target(1, bloomTex)
     .compile();
-  postRender
-    .createComposite("tonemap")
-    .fragment("post/tonemap.fsh")
-    .target(0, mainTexture)
-    .compile();
+
+  for (let i = 0; i < 5; i++) {
+    postRender
+      .createComposite(`bloomDownsample${i}-${i + 1}`)
+      .vertex("post/fullscreen_Pass.vsh")
+      .fragment("post/bloom_Downsample.fsh")
+      .target(0, bloomTex, i + 1)
+      .define("BLOOM_INDEX", i.toString())
+      .compile();
+  }
+
+  for (let i = 5; i > 0; i -= 1) {
+    postRender
+      .createComposite(`bloomUpsample${i}-${i - 1}`)
+      .vertex("post/fullscreen_Pass.vsh")
+      .fragment("post/bloom_Upsample.fsh")
+      .target(0, bloomTex, i - 1)
+      .define("BLOOM_INDEX", i.toString())
+      .compile();
+  }
 
   // If you have multiple passes relying on each other, you will require memory barriers.
 

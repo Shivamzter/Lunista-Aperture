@@ -17,7 +17,8 @@ uniform sampler2D mainDepthTex;
 in vec2 uv;
 in vec3 normal;
 
-layout(location = 0) out vec4 colorOut;
+layout (location = 0) out vec4 colorOut;
+layout (location = 1) out vec4 brightColor;
 
 bool isNight = ap.world.time >= 13000 && ap.world.time < 24000;
 
@@ -122,8 +123,20 @@ void main() {
   // vec3 col = vec3(float(ccascade)/3.0);
   // outColor = vec4(col,1.0);
 
-  colorOut = vec4(color, 1.0);
+  float brightness = dot(emissiveFinal.rgb, vec3(0.2126, 0.7152, 0.0722));
+
+  
   // colorOut = vec4(vec3(shadow / 3.0), 1.0); // Debugging cascade
   // colorOut = texture(specularTex, uv);
   // colorOut = labSpecular;
+
+  // float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
+  if (brightness > 1.0) {
+    brightColor = vec4(color.rgb, 1.0);
+  } else {
+    brightColor = vec4(0.0, 0.0, 0.0, 1.0);
+  }
+  
+  colorOut = vec4(color, 1.0);
+  // colorOut = vec4(brightness, brightness, brightness, 1.0);
 }
