@@ -179,7 +179,7 @@ vec3 microfacetBRDF(vec3 L, vec3 V, vec3 N, float labF0_HCM, float roughness, ve
   rhoD *= vec3(1.0) - F;
   rhoD *= (1.0 - metallic);
 
-  vec3 diff = (rhoD / PI) * radiance;
+  vec3 diff = (rhoD / PI) * radiance * NoL;
 
   vec3 result = diff + spec;
 

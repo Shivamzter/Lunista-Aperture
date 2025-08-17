@@ -5,7 +5,6 @@ function configureRenderer(renderer) {
   renderer.ambientOcclusionLevel = 1;
   renderer.mergedHandDepth = true;
   renderer.disableShade = false;
-  renderer.render.sun = false;
   renderer.shadow.resolution = 1592;
   renderer.shadow.far = 192;
   renderer.shadow.distance = 192;

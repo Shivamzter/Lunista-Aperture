@@ -10,7 +10,7 @@ export function configureRenderer(renderer: RendererConfig): void {
   renderer.mergedHandDepth = true;
   renderer.disableShade = false;
 
-  renderer.render.sun = false;
+  // renderer.render.sun = false;
 
   renderer.shadow.resolution = 1592;
   renderer.shadow.far = 192;
