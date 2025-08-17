@@ -18,7 +18,7 @@ in vec2 uv;
 in vec3 normal;
 
 layout (location = 0) out vec4 colorOut;
-layout (location = 1) out vec4 brightColor;
+layout (location = 1) out vec4 bloom;
 
 bool isNight = ap.world.time >= 13000 && ap.world.time < 24000;
 
@@ -34,25 +34,11 @@ const vec3 ambientColorNight = vec3(0.01);
 vec3 ambient = isNight ? ambientColorNight : ambientColorDay;
 
 float specularStrength = 0.5;
-float emissiveIntensity = 7.5;
+float emissiveIntensity = 1.0;
 
 vec3 projectAndDivide(mat4 projectionMatrix, vec3 position) {
   vec4 homPos = projectionMatrix * vec4(position, 1.0);
   return homPos.xyz / homPos.w;
-}
-
-vec3 screen_to_view_space(vec3 position_screen) {
-    vec3 position_ndc = position_screen * 2.0 - 1.0;
-    return projectAndDivide(ap.camera.projectionInv, position_ndc);
-}
-vec3 view_to_screen_space(vec3 position_view) {
-    vec3 position_ndc = projectAndDivide(ap.camera.projection, position_view);
-    return position_ndc * 0.5 + 0.5;
-}
-
-vec3 view_to_scene_space(vec3 position_view) {
-  vec3 position_scene = mat3(ap.camera.viewInv) * position_view;
-    return position_scene;
 }
 
 #include "/lib/shadowSampling.glsl"
@@ -91,10 +77,6 @@ void main() {
   vec3 eyePlayerPos = mat3(ap.camera.viewInv) * viewPos; // player space
   vec3 playerFeetPos = eyePlayerPos + ap.camera.viewInv[3].xyz; // player space
 
-  // vec3 pos_screen = vec3(uv, depth);
-  // vec3 pos_view   = screen_to_view_space(pos_screen);
-  // vec3 pos_scene  = view_to_scene_space(pos_view);
-
   vec3 lightDir = mat3(ap.camera.viewInv) * normalize(ap.celestial.pos); // view to player space
   vec3 viewDir = normalize(-eyePlayerPos); // player space
 
@@ -125,17 +107,13 @@ void main() {
 
   float brightness = dot(emissiveFinal.rgb, vec3(0.2126, 0.7152, 0.0722));
 
-  
-  // colorOut = vec4(vec3(shadow / 3.0), 1.0); // Debugging cascade
-  // colorOut = texture(specularTex, uv);
-  // colorOut = labSpecular;
-
-  // float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
-  if (brightness > 1.0) {
-    brightColor = vec4(color.rgb, 1.0);
+  if (brightness > 0.0 && brightness < 0.75) {
+    bloom = vec4(color.rgb, 1.0); 
   } else {
-    brightColor = vec4(0.0, 0.0, 0.0, 1.0);
-  }
+    bloom = vec4(0.0, 0.0, 0.0, 1.0);
+  };
+
+  // bloom = vec4(color.rgb * 2e-2, 1.0);
   
   colorOut = vec4(color, 1.0);
   // colorOut = vec4(brightness, brightness, brightness, 1.0);
