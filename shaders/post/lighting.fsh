@@ -2,10 +2,15 @@
 
 #include "/lib/brdf.glsl"
 
+
 uniform sampler2D mainTexture; // colortex0
 uniform sampler2D lightmapTex;
 uniform sampler2D normalTex;
 uniform sampler2D specularTex;
+uniform sampler2D labNormalTex;
+uniform sampler2D flatNormalTex;
+
+uniform sampler2DArrayShadow shadowMapFiltered;
 
 uniform sampler2D mainDepthTex;
 
@@ -35,9 +40,29 @@ vec3 projectAndDivide(mat4 projectionMatrix, vec3 position) {
   return homPos.xyz / homPos.w;
 }
 
+vec3 screen_to_view_space(vec3 position_screen) {
+    vec3 position_ndc = position_screen * 2.0 - 1.0;
+    return projectAndDivide(ap.camera.projectionInv, position_ndc);
+}
+vec3 view_to_screen_space(vec3 position_view) {
+    vec3 position_ndc = projectAndDivide(ap.camera.projection, position_view);
+    return position_ndc * 0.5 + 0.5;
+}
+
+vec3 view_to_scene_space(vec3 position_view) {
+  vec3 position_scene = mat3(ap.camera.viewInv) * position_view;
+    return position_scene;
+}
+
+#include "/lib/shadowSampling.glsl"
+
 void main() {
 	vec3 color = texture(mainTexture, uv).rgb;
-  vec3 albedo = color;
+  vec2 lightmap = texture(lightmapTex, uv).rg;
+  vec4 labSpecular = texture(specularTex, uv);
+  vec3 encodedNormal = texture(normalTex, uv).rgb;
+  vec3 labNormal = texture(labNormalTex, uv).rgb;
+  vec3 flatNormal = texture(flatNormalTex, uv).rgb;
 
   float depth = texture(mainDepthTex, uv).r;
 
@@ -45,69 +70,57 @@ void main() {
   //   return;
   // }
 
-  vec2 lightmap = texture(lightmapTex, uv).rg;
-  vec3 encodedNormal = texture(normalTex, uv).rgb;
-  vec4 labSpecular = texture(specularTex, uv);
+  vec3 encodedNorm = normalize(encodedNormal * 2.0 - 1.0);
+  vec3 flatNorm = normalize(flatNormal * 2.0 - 1.0);
+
+  float labAO = labNormal.b;
 
   float labRoughness = labSpecular.r;
-  labRoughness = pow(1.0 - labRoughness, 2.0); //convert smoothness to linear roughness
+  labRoughness = pow(1.0 - labRoughness, 2.0);
 
-  float labSpecG = labSpecular.g * 255.0;
-
-  float labMetallic = (labSpecG >= 230.0) ? 1.0 : 0.0;
-  vec3 f0 = vec3(clamp(labSpecular.g, 0.04, 229.0 / 255.0));
-
-  vec3 labHCM;
-  if (labSpecG == 230.0) {
-    labHCM = vec3(0.560, 0.570, 0.580); // Iron 
-  } else if (labSpecG == 231.0) {
-    labHCM = vec3(1.000, 0.710, 0.290); // Gold
-  } else if (labSpecG == 232.0) {
-    labHCM = vec3(0.910, 0.920, 0.920); // Aluminum
-  } else if (labSpecG == 234.0) {
-    labHCM = vec3(0.950, 0.640, 0.540); // Copper
-  } else {
-    labHCM = albedo;
-  }
-
-  vec3 labF0 = labMetallic == 1.0 ? labHCM : f0;
+  float labSpecG = labSpecular.g;
 
   float labEmissive = fract(labSpecular.a);
-  vec3 emissiveFinal = labEmissive * albedo * emissiveIntensity;
+  vec3 emissiveFinal = labEmissive * color * emissiveIntensity;
   
-  vec3 normal = normalize((encodedNormal - 0.5) * 2.0); // view space normals
-  vec3 vNormal = mat3(ap.camera.viewInv) * normal; // view to player space
-
-  vec3 NDCPos = vec3(uv.xy, depth) * 2.0 - 1.0;
+  vec3 NDCPos = vec3(uv, depth) * 2.0 - 1.0;
 	vec3 viewPos = projectAndDivide(ap.camera.projectionInv, NDCPos);
   vec3 eyePlayerPos = mat3(ap.camera.viewInv) * viewPos; // player space
+  vec3 playerFeetPos = eyePlayerPos + ap.camera.viewInv[3].xyz; // player space
 
-  // vec3 lightSunMoon = lightColor * clamp(dot(lightDir, normal), 0.0, 1.0) * lightmap.g;
+  // vec3 pos_screen = vec3(uv, depth);
+  // vec3 pos_view   = screen_to_view_space(pos_screen);
+  // vec3 pos_scene  = view_to_scene_space(pos_view);
 
   vec3 lightDir = mat3(ap.camera.viewInv) * normalize(ap.celestial.pos); // view to player space
   vec3 viewDir = normalize(-eyePlayerPos); // player space
 
-  // float diff = max(dot(vNormal, lightDir), 0.0);
-  // vec3 diffuse = diff * lightColor;
-
-  // vec3 halfwayDir = normalize(lightDir + viewDir);
-
-  // float spec = pow(max(dot(vNormal, halfwayDir), 0.0), 128);
-  // vec3 specular = specularStrength * spec * lightColor;
-
-  vec3 brdf = brdfMicrofacet(lightColor, vNormal, lightDir, viewDir, labRoughness, labF0, albedo, labMetallic);
+  vec3 brdf = microfacetBRDF(lightDir, viewDir, encodedNorm, labSpecG, labRoughness, color, lightColor);
 
   vec3 skylight = lightmap.g * skylightColor;
   vec3 blocklight = lightmap.r * blocklightColor;
 
-  vec3 directLight = brdf;
-  vec3 indirectLight = blocklight + skylight + ambient;
+  // vec3 shadow = get_shadow(eyePlayerPos, flatNorm, lightDir);
+  vec3 shadow = get_shadowed(playerFeetPos, flatNorm, lightDir);
 
-  // color.rgb *= ambient + diffuse + specular;
+  vec3 directLight = brdf * shadow;
+  vec3 indirectLight = (blocklight + skylight + ambient) * labAO;
+
+  // vec3 shadow_view_normal = flatNorm + ap.camera.viewInv[3].xyz; // player space
+
+  // vec3 shadow_view_normal = (ap.celestial.view) * flatNorm;
+  // vec3 shadow_view_pos = (ap.celestial.view * vec4(playerPos, 1.0)).xyz;
+
   color.rgb *= indirectLight + directLight;
   color.rgb += emissiveFinal;
 
+  // float d = -viewPos.z; // if viewPos is camera-space (z negative forward)
+  // int ccascade = (d < 32.0) ? 0 : (d < 96.0) ? 1 : (d < 192.0) ? 2 : 3;
+  // vec3 col = vec3(float(ccascade)/3.0);
+  // outColor = vec4(col,1.0);
+
   colorOut = vec4(color, 1.0);
+  // colorOut = vec4(vec3(shadow / 3.0), 1.0); // Debugging cascade
   // colorOut = texture(specularTex, uv);
   // colorOut = labSpecular;
 }

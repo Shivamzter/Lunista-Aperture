@@ -1,13 +1,13 @@
 #version 460 core
 
 out vec2 uv;
-out vec4 color;
+out vec3 normal;
 
 void iris_emitVertex(inout VertexData data) {
 	data.clipPos = iris_projectionMatrix * iris_modelViewMatrix * data.modelPos;
 }
 
-void iris_sendParameters() {
+void iris_sendParameters(VertexData data) {
     uv = data.uv;
-    color = data.color;
+    normal = data.normal;
 }

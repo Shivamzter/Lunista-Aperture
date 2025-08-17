@@ -82,3 +82,8 @@ worldTime = ap.world.time
 shadowLightPosition = ap.celestial.pos
 
 gbuffersModelViewInverse = ap.camera.viewInv
+
+gbuffersProjectionInverse = ap.camera.projectionInv
+gbuffersProjection = ap.camera.projection
+
+shadow = ap.celestial.view

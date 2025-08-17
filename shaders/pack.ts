@@ -1,10 +1,25 @@
 // This configures basic settings for the world.
+const cascades = 4;
+
 export function configureRenderer(renderer: RendererConfig): void {
   // These settings mimic Vanilla Minecraft's rendering settings.
   // mergedHandDepth is used to avoid needing to merge the hand depth; however, you will likely want this off for more complex shaders.
-  renderer.mergedHandDepth = true;
+
+  renderer.sunPathRotation = -30.0;
   renderer.ambientOcclusionLevel = 1.0;
+  renderer.mergedHandDepth = true;
   renderer.disableShade = false;
+
+  renderer.render.sun = false;
+
+  renderer.shadow.resolution = 1592;
+  renderer.shadow.far = 192;
+  renderer.shadow.distance = 192;
+  renderer.shadow.enabled = true;
+  renderer.shadow.cascades = cascades;
+
+  renderer.shadow.entityCascadeCount = 1;
+
   renderer.render.entityShadow = true;
 }
 
@@ -37,7 +52,18 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .createTexture("specularTex")
     .width(screenWidth)
     .height(screenHeight)
+    .format(Format.RGBA16F)
+    .build();
+  let labNormalTex = pipeline
+    .createTexture("labNormalTex")
+    .width(screenWidth)
+    .height(screenHeight)
     .format(Format.RGBA8)
+    .build();
+  let flatNormalTex = pipeline
+    .createTexture("flatNormalTex")
+    .width(screenWidth)
+    .height(screenHeight)
     .build();
 
   //   let finalTexture = pipeline
@@ -56,6 +82,8 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .target(1, lightmapTex)
     .target(2, normalTex)
     .target(3, specularTex)
+    .target(4, labNormalTex)
+    .target(5, flatNormalTex)
     .compile();
 
   pipeline

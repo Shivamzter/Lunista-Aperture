@@ -3,10 +3,11 @@
 out vec2 uv;
 out vec2 light;
 out vec4 color;
+out vec3 normal;
 
 out mat3 tbnMatrix;
 
-// out float vertexDistance;
+out float vertexDistance;
 
 /*
 Reference for VertexData struct (in emitVertex, you are expected to fill in data.clipPos):
@@ -41,6 +42,12 @@ void iris_sendParameters(VertexData data) {
     light = data.light;
     color = data.color;
 
+    // vec3 normalizedNormal = normalize(data.normal - 0.5) * 2.0;
+    normal = (iris_normalMatrix * data.normal);
+    normal = mat3(ap.camera.viewInv) * normal; // view to player space
+    // normal = normal + ap.camera.viewInv[3].xyz; // feet position in player space
+
+
     // Add red entity hit flash and creeper explosion flash
     color.rgb = mix(data.overlayColor.rgb, data.color.rgb, data.overlayColor.a);
 
@@ -48,12 +55,14 @@ void iris_sendParameters(VertexData data) {
     color.rgb *= data.ao;
 
     // from Jbritains Glint shader
-    tbnMatrix[2] = normalize(mat3(iris_normalMatrix) * data.normal);
+    tbnMatrix[2] = normalize(mat3(iris_normalMatrix) * data.normal.xyz);
     tbnMatrix[0] = normalize(mat3(iris_normalMatrix) * data.tangent.xyz);
     tbnMatrix[1] = normalize(
     cross(tbnMatrix[0], tbnMatrix[2]) * data.tangent.w
     );
 
+    tbnMatrix = mat3(ap.camera.viewInv) * tbnMatrix; // view to player space
+
     // Used for fog later on.
-    // vertexDistance = length(data.modelPos);
+    vertexDistance = length(data.modelPos);
 }
