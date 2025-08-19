@@ -25,8 +25,8 @@ bool isNight = ap.world.time >= 13000 && ap.world.time < 24000;
 const vec3 blocklightColor = vec3(1.0, 0.5, 0.08);
 const vec3 skylightColor = vec3(0.05, 0.15, 0.3);
 
-const vec3 sunlightColor = vec3(23.47, 21.31, 20.79) * 2.5; // vec3(23.47, 21.31, 20.79) BRDF
-const vec3 moonlightColor = vec3(0.1, 0.1, 0.3);
+const vec3 sunlightColor = vec3(1.051, 0.985, 0.94) * 20; // vec3(23.47, 21.31, 20.79) BRDF
+const vec3 moonlightColor = sunlightColor * 0.00025; // vec3(0.1, 0.1, 0.3)
 vec3 lightColor = isNight ? moonlightColor : sunlightColor;
 
 const vec3 ambientColorDay = vec3(0.15);
@@ -66,6 +66,7 @@ void main() {
 
   float labRoughness = labSpecular.r;
   labRoughness = pow(1.0 - labRoughness, 2.0);
+  labRoughness = clamp(labRoughness, 0.001, 1.0);
 
   float labSpecG = labSpecular.g;
 

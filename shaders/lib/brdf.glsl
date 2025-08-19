@@ -87,17 +87,17 @@ const float PI = 3.14159265359;
 //   return Lo;
 // }
 
-float D_GGX(float NoH, float roughness) {
+float D_GGX(float NoH, float alpha) {
 
-    float alpha = roughness * roughness;
-    float alpha2 = alpha * alpha;
+    float alpha2 = pow(alpha, 2.0);
+    float NoH2 = pow(NoH, 2.0);
 
-    float NoH2 = NoH * NoH;
+    float num = alpha2;
+    float denom = PI * (pow(NoH2 * (alpha2 - 1.0) + 1.0, 2.0));
+    denom = max(denom, 1e-6); // Prevent division by zero
 
-    float b = (NoH2 * (alpha2 - 1.0) + 1.0);
+    return num / denom;
 
-    return alpha2 / (PI * b * b);
-    // return alpha2 * PI / (b * b); // Check this if what you did doesn't work.
 }
 
 // float G1_GGX_Schlick(float NoV, float roughness) {
@@ -106,12 +106,12 @@ float D_GGX(float NoH, float roughness) {
 //     return max(NoV, 0.0001) / (max(NoV, 0.0001) * (1.0 - k) + k);
 // }
 
-float G1_GGX(float NoVL, float roughness) {
-    float alpha = roughness * roughness;
-    float alpha2 = alpha * alpha;
+float G1_GGX(float NoVL, float alpha) {
+
+    float alpha2 = pow(alpha, 2.0);
 
     float NoX = max(NoVL, 1e-6);
-    float NoX2 = NoX * NoX;
+    float NoX2 = pow(NoX, 2.0);
 
     float num = 2.0 * NoX;
     float denom = NoX + sqrt(alpha2 + (1.0 - alpha2) * NoX2);
@@ -119,8 +119,8 @@ float G1_GGX(float NoVL, float roughness) {
     return num / denom;
 }
 
-float G_Smith(float NoV, float NoL, float roughness) {
-    return G1_GGX(NoV, roughness) * G1_GGX(NoL, roughness);
+float G_Smith(float NoV, float NoL, float alpha) {
+    return G1_GGX(NoV, alpha) * G1_GGX(NoL, alpha);
 }
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
@@ -133,24 +133,17 @@ vec3 labPBR_HCM_F0(int conductor) {
     if (conductor == 231) return vec3(0.981, 0.781, 0.497); // Gold
     if (conductor == 232) return vec3(0.700, 0.700, 0.700); // Aluminum
     if (conductor == 234) return vec3(0.955, 0.638, 0.538); // Copper
-    return vec3(0.75, 0.75, 0.75);
+    return vec3(0.50, 0.50, 0.50);
 }
 
-vec3 microfacetBRDF(vec3 L, vec3 V, vec3 N, float labF0_HCM, float roughness, vec3 albedo, vec3 lightColor) {
-
-  vec3 Lo = vec3(0.0);
-  
-  //calculate light radiance
-  float dist = length(L);
-  float attenuation = 1.0 / (dist * dist);
-  vec3 radiance = lightColor * attenuation; 
+vec3 microfacetBRDF(vec3 L, vec3 V, vec3 N, float labF0_HCM, float roughness, vec3 albedo, vec3 directLight) {
 
   vec3 H = normalize(V + L);
 
-  float NoV = clamp(dot(N, V), 0.0, 1.0);
-  float NoL = clamp(dot(N, L), 0.0, 1.0);
-  float NoH = clamp(dot(N, H), 0.0, 1.0);
-  float VoH = clamp(dot(V, H), 0.0, 1.0);
+  float NoV = max(dot(N, V), 0.0);
+  float NoL = max(dot(N, L), 0.0);
+  float NoH = max(dot(N, H), 0.0);
+  float VoH = max(dot(V, H), 0.0);
 
   vec3 f0;
   float metallic;
@@ -164,24 +157,24 @@ vec3 microfacetBRDF(vec3 L, vec3 V, vec3 N, float labF0_HCM, float roughness, ve
   } else {
     metallic = 0.0;
     float reflectence = labG / 229.0;
-    vec3 f0 = vec3(0.16 * (reflectence * reflectence));
-
+    f0 = vec3(0.16 * (reflectence * reflectence));
   }
 
+  float alpha = roughness;
+
   vec3 F = fresnelSchlick(VoH, f0);
-  float D = D_GGX(NoH, roughness);
-  float G = G_Smith(NoV, NoL, roughness);
+  float D = D_GGX(NoH, alpha);
+  float G = G_Smith(NoV, NoL, alpha);
 
-  vec3 spec = (D * F * G) / (4.0 * max(NoL, 1e-6) * max(NoV, 1e-6));
+  vec3 spec = (D * F * G) / (4.0 * max(NoL, 0.0) * max(NoV, 0.0) + 1e-6);
 
-  vec3 rhoD = albedo;
+  vec3 kS = F;
 
-  rhoD *= vec3(1.0) - F;
-  rhoD *= (1.0 - metallic);
+  vec3 kD = (1.0 - kS) * (1.0 - metallic);
 
-  vec3 diff = (rhoD / PI) * radiance * NoL;
+  vec3 diff =  kD * (albedo / PI);
 
-  vec3 result = diff + spec;
+  vec3 result = (diff + spec) * directLight * (NoL);
 
   return result;
 }
