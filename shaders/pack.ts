@@ -2,9 +2,19 @@
 export function configureRenderer(renderer: RendererConfig): void {
   // These settings mimic Vanilla Minecraft's rendering settings.
   // mergedHandDepth is used to avoid needing to merge the hand depth; however, you will likely want this off for more complex shaders.
-  renderer.mergedHandDepth = true;
+  renderer.sunPathRotation = -30.0;
   renderer.ambientOcclusionLevel = 1.0;
+  renderer.mergedHandDepth = true;
   renderer.disableShade = false;
+
+  renderer.shadow.resolution = 1592;
+  renderer.shadow.far = 192;
+  renderer.shadow.distance = 192;
+  renderer.shadow.enabled = true;
+  renderer.shadow.cascades = 4;
+
+  renderer.shadow.entityCascadeCount = 1;
+
   renderer.render.entityShadow = true;
 }
 
@@ -14,8 +24,8 @@ export function configurePipeline(pipeline: PipelineConfig): void {
   // However, you are not limited by how many textures can be created.
   // The most important limitation is you should never read and write to the same texture in the same shader. (Using images avoids this limitation, but this is not covered here.)
 
-  let mainTexture = pipeline
-    .createTexture("mainTexture")
+  let mainTex = pipeline
+    .createTexture("mainTex")
     .width(screenWidth)
     .height(screenHeight)
     .format(Format.RGBA16F)
@@ -45,7 +55,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .createObjectShader("basic", Usage.BASIC)
     .vertex("objects/basic.vsh")
     .fragment("objects/basic.fsh")
-    .target(0, mainTexture)
+    .target(0, mainTex)
     .target(1, lightmapTex)
     .target(2, normalTex)
     .compile();
@@ -73,12 +83,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
   postRender
     .createComposite("lighting")
     .fragment("post/lighting.fsh")
-    .target(0, mainTexture)
-    .compile();
-  postRender
-    .createComposite("tonemap")
-    .fragment("post/tonemap.fsh")
-    .target(0, mainTexture)
+    .target(0, mainTex)
     .compile();
 
   // If you have multiple passes relying on each other, you will require memory barriers.

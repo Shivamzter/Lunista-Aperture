@@ -7,26 +7,21 @@ layout (location = 2) out vec4 encodedNormal;
 in vec2 uv;
 in vec2 light;
 in vec4 color;
+in vec3 normal;
+in float ao;
 
 in mat3 tbn_matrix;
-
-in vec3 normal;
 
 in float vertexDistance;
 
 void iris_emitFragment() {
     fragColor = iris_sampleBaseTex(uv) * iris_sampleLightmap(light) * color;
 
-    vec4 normalData = iris_sampleNormalMap(uv);
-    vec3 textureNormal = normalData.xyz * 2.0 - 1.0;
-    textureNormal.z = sqrt(1.0 - dot(textureNormal.xy, textureNormal.xy));
-    textureNormal = tbn_matrix * textureNormal;
-
-    // textureSpecular = iris_sampleSpecularMap(new_atlas_uv);
-
     if (iris_discardFragment(fragColor)) discard;
 
     fragColor.rgb = pow(fragColor.rgb, vec3(2.2));
+
+    // textureSpecular = iris_sampleSpecularMap(new_atlas_uv);
 
     // #ifndef DISABLE_FOG
     // float mixValue = (vertexDistance - ap.world.fogStart) / (ap.world.fogEnd - ap.world.fogStart);
@@ -38,6 +33,5 @@ void iris_emitFragment() {
     // #endif
 
     lightmapData = vec4(light, 0.0, 1.0);
-
-    encodedNormal = vec4(textureNormal * 0.5 + 0.5, 1.0);
+    encodedNormal = vec4(normal * 0.5 + 0.5, ao);
 }
