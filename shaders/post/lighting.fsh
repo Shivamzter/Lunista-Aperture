@@ -9,7 +9,6 @@ uniform sampler2D mainDepthTex;
 uniform sampler2DArrayShadow shadowMapFiltered;
 
 in vec2 uv;
-in vec3 normal;
 
 layout(location = 0) out vec4 colorOut;
 
@@ -54,10 +53,12 @@ void main() {
   vec3 playerWorldPos = getWorldPos(uv, depth);
 
   vec2 lightmap = texture(lightmapTex, uv).rg;
-  vec3 encodedNormal = texture(normalTex, uv).rgb;
-  vec3 normal = normalize((encodedNormal - 0.5) * 2.0);
+  vec4 encodedNormal = texture(normalTex, uv);
+  vec3 normal = normalize((encodedNormal.rgb - 0.5) * 2.0);
 
-  vec3 lightDir = mat3(ap.camera.viewInv) * normalize(ap.celestial.pos);
+  float vanillaAO = encodedNormal.a;
+  
+  vec3 lightDir = mat3(ap.camera.viewInv) * normalize(ap.celestial.pos); // World space
 
   vec3 blocklight = lightmap.r * blocklightColor;
   vec3 skylight = lightmap.g * skylightColor;
@@ -70,6 +71,7 @@ void main() {
   vec3 dirLight = light * clamp(dot(worldLightVector, normal), 0.0, 1.0) * shadow;
 
   color.rgb *= blocklight + skylight + ambient + dirLight;
+  color.rgb *= vanillaAO;
 
   colorOut = vec4(color, 1.0);
 }
