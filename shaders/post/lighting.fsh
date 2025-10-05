@@ -86,7 +86,6 @@ void main() {
   vec3 skylight = lightmap.g * skylightColor;
   vec3 blocklight = lightmap.r * blocklightColor;
 
-  // vec3 shadow = get_shadow(eyePlayerPos, flatNorm, lightDir);
   vec3 shadow = get_shadowed(playerFeetPos, flatNorm, lightDir);
 
   vec3 directLight = brdf * shadow;
