@@ -4,6 +4,15 @@ in vec2 uv;
 
 uniform sampler2D bloomTex;
 
+float RGBtoLuminance(vec3 col) {
+  return dot(col.rgb, vec3(0.2126, 0.7152, 0.0722));
+};
+
+float KarisAverage(vec3 col) {
+  float luma = RGBtoLuminance(col) * 0.25;
+  return 1.0 / (1.0 + luma);
+};
+
 vec3 bloomDownsample(sampler2D srcTexture, vec2 coord) {
     vec2 res = textureSize(srcTexture, BLOOM_INDEX);
     vec2 srcRes = 1.0 / res;
@@ -28,13 +37,30 @@ vec3 bloomDownsample(sampler2D srcTexture, vec2 coord) {
     vec3 m = textureLod(srcTexture, vec2(coord.x + x, coord.y - y), BLOOM_INDEX).rgb;
 
     vec3 downsample;
-    downsample = e * 0.125;
-    downsample += (a + c + g + i) * 0.03125;
-    downsample += (b + d + f + h) * 0.0625;
-    downsample += (j + k + l + m) * 0.125;
-    downsample = max(downsample, 0.0001);
+    
+    // Karis Avarage
+    if (BLOOM_INDEX == 0) {
+      vec3 groups[5];
+      groups[0] = (a + b + d + e) * (0.25 / 4.0);
+      groups[1] = (b + c + e + f) * (0.25 / 4.0);
+      groups[2] = (d + e + g + h) * (0.25 / 4.0);
+      groups[3] = (e + f + h + i) * (0.25 / 4.0);
+      groups[4] = (j + k + l + m) * (0.25 / 4.0);
 
+      for (int n = 0; n < 5; n++) {
+        groups[n] *= KarisAverage(groups[n]);
+        downsample += groups[n];
+      }
+    } else {
+      downsample = e * 0.125;
+      downsample += (a + c + g + i) * 0.03125;
+      downsample += (b + d + f + h) * 0.0625;
+      downsample += (j + k + l + m) * 0.125;
+    }
+
+    downsample = max(downsample, 0.0001);
     return downsample;
+
 }
 
 layout(location = 0) out vec3 bloom;

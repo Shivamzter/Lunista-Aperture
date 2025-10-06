@@ -25,12 +25,12 @@ export function configureRenderer(renderer: RendererConfig): void {
 
 // This is where the shaders, buffers, and textures are configured.
 export function configurePipeline(pipeline: PipelineConfig): void {
-  // This creates the main texture; one of the two textures used in this template. It can be accessed via "uniform sampler2D mainTexture;" in shaders.
+  // This creates the main texture; one of the two textures used in this template. It can be accessed via "uniform sampler2D mainTex;" in shaders.
   // However, you are not limited by how many textures can be created.
   // The most important limitation is you should never read and write to the same texture in the same shader. (Using images avoids this limitation, but this is not covered here.)
 
-  const mainTexture = pipeline
-    .createTexture("mainTexture")
+  const mainTex = pipeline
+    .createTexture("mainTex")
     .format(Format.RGBA16F)
     .width(screenWidth)
     .height(screenHeight)
@@ -71,7 +71,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
 
   const bloomTex = pipeline
     .createTexture("bloomTex")
-    .format(Format.RGBA16F)
+    .format(Format.R11F_G11F_B10F)
     .width(screenWidth)
     .height(screenHeight)
     .clear(true)
@@ -90,7 +90,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .createObjectShader("basic", Usage.BASIC)
     .vertex("objects/basic.vsh")
     .fragment("objects/basic.fsh")
-    .target(0, mainTexture)
+    .target(0, mainTex)
     .target(1, lightmapTex)
     .target(2, normalTex)
     .target(3, specularTex)
@@ -109,7 +109,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
   //   .createObjectShader("basic", Usage.SKY_TEXTURES)
   //   .vertex("objects/basic.vsh")
   //   .fragment("objects/basic.fsh")
-  //   .target(0, mainTexture)
+  //   .target(0, mainTex)
   //   .define("DISABLE_FOG", "1")
   //   .compile();
 
@@ -123,7 +123,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .createComposite("lighting")
     .vertex("post/fullscreen_Pass.vsh")
     .fragment("post/lighting.fsh")
-    .target(0, mainTexture)
+    .target(0, mainTex)
     .target(1, bloomTex)
     .compile();
 

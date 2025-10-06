@@ -3,7 +3,7 @@
 #include "/lib/brdf.glsl"
 
 
-uniform sampler2D mainTexture; // colortex0
+uniform sampler2D mainTex; // colortex0
 uniform sampler2D lightmapTex;
 uniform sampler2D normalTex;
 uniform sampler2D specularTex;
@@ -18,7 +18,7 @@ in vec2 uv;
 in vec3 normal;
 
 layout (location = 0) out vec4 colorOut;
-layout (location = 1) out vec4 bloom;
+layout (location = 1) out vec3 bloom;
 
 bool isNight = ap.world.time >= 13000 && ap.world.time < 24000;
 
@@ -44,7 +44,7 @@ vec3 projectAndDivide(mat4 projectionMatrix, vec3 position) {
 #include "/lib/shadowSampling.glsl"
 
 void main() {
-	vec3 color = texture(mainTexture, uv).rgb;
+	vec3 color = texture(mainTex, uv).rgb;
   vec2 lightmap = texture(lightmapTex, uv).rg;
   vec4 labSpecular = texture(specularTex, uv);
   vec4 encodedNormal = texture(normalTex, uv);
@@ -70,8 +70,11 @@ void main() {
 
   float labSpecG = labSpecular.g;
 
-  float labEmissive = fract(labSpecular.a);
-  vec3 emissiveFinal = labEmissive * color * emissiveIntensity;
+
+  // float labEmissive = float(labEmissiveDecode);
+
+  // float labEmissive = fract(labSpecular.a);
+  // vec3 emissiveFinal = labEmissive * color;
   
   vec3 NDCPos = vec3(uv, depth) * 2.0 - 1.0;
 	vec3 viewPos = projectAndDivide(ap.camera.projectionInv, NDCPos);
@@ -89,32 +92,31 @@ void main() {
   vec3 shadow = get_shadowed(playerFeetPos, flatNorm, lightDir);
 
   vec3 directLight = brdf * shadow;
-  vec3 indirectLight = (blocklight + skylight + ambient) * vanillaAO;
-
-  // vec3 shadow_view_normal = flatNorm + ap.camera.viewInv[3].xyz; // player space
-
-  // vec3 shadow_view_normal = (ap.celestial.view) * flatNorm;
-  // vec3 shadow_view_pos = (ap.celestial.view * vec4(playerPos, 1.0)).xyz;
+  vec3 indirectLight = (blocklight + skylight + ambient) * vanillaAO * labAO;
 
   color.rgb *= indirectLight + directLight;
-  color.rgb += emissiveFinal;
-  color.rgb *= labAO; // Apply ambient occlusion
+  // color.rgb += emissiveFinal;
 
-  // float d = -viewPos.z; // if viewPos is camera-space (z negative forward)
-  // int ccascade = (d < 32.0) ? 0 : (d < 96.0) ? 1 : (d < 192.0) ? 2 : 3;
-  // vec3 col = vec3(float(ccascade)/3.0);
-  // outColor = vec4(col,1.0);
+  vec3 hdrColor = color.rgb;
 
-  float brightness = dot(emissiveFinal.rgb, vec3(0.2126, 0.7152, 0.0722));
+  int labSpecAlpha = int(labSpecular.a * 255.0 + 0.5);
+  
+  // float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
 
-  if (brightness > 0.0 && brightness < 0.75) {
-    bloom = vec4(color.rgb, 1.0); 
-  } else {
-    bloom = vec4(0.0, 0.0, 0.0, 1.0);
-  };
+  // if (brightness > 1.0) {
+  //   bloom = vec3(color.rgb); 
+  // } else {
+  //   bloom = vec3(0.0);
+  // };
 
-  // bloom = vec4(color.rgb * 2e-2, 1.0);
+  // float threshold = 1.0;   // minimum brightness to bloom
+  // float knee = 0.5;        // smooth fade range
+  // float x = max(0.0, brightness - threshold);
+  // float contribution = x * x / (x + knee * knee);
+
+  vec3 bloomMasked = (labSpecAlpha >= 1 && labSpecAlpha <= 254) ? hdrColor : vec3(0.0);
+
+  bloom = bloomMasked;
   
   colorOut = vec4(color, 1.0);
-  // colorOut = vec4(brightness, brightness, brightness, 1.0);
 }
