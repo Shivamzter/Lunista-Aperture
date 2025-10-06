@@ -127,7 +127,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .target(1, bloomTex)
     .compile();
 
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 6; i++) {
     postRender
       .createComposite(`bloomDownsample${i}-${i + 1}`)
       .vertex("post/fullscreen_Pass.vsh")
@@ -137,7 +137,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
       .compile();
   }
 
-  for (let i = 5; i > 0; i -= 1) {
+  for (let i = 6; i > 0; i -= 1) {
     postRender
       .createComposite(`bloomUpsample${i}-${i - 1}`)
       .vertex("post/fullscreen_Pass.vsh")

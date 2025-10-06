@@ -25,10 +25,10 @@ function configurePipeline(pipeline) {
   pipeline.createObjectShader("basic", Usage.SHADOW).vertex("objects/shadow.vsh").fragment("objects/shadow.fsh").compile();
   let postRender = pipeline.forStage(Stage.POST_RENDER);
   postRender.createComposite("lighting").vertex("post/fullscreen_Pass.vsh").fragment("post/lighting.fsh").target(0, mainTex).target(1, bloomTex).compile();
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 6; i++) {
     postRender.createComposite(`bloomDownsample${i}-${i + 1}`).vertex("post/fullscreen_Pass.vsh").fragment("post/bloom_Downsample.fsh").target(0, bloomTex, i + 1).define("BLOOM_INDEX", i.toString()).compile();
   }
-  for (let i = 5; i > 0; i -= 1) {
+  for (let i = 6; i > 0; i -= 1) {
     postRender.createComposite(`bloomUpsample${i}-${i - 1}`).vertex("post/fullscreen_Pass.vsh").fragment("post/bloom_Upsample.fsh").target(0, bloomTex, i - 1).define("BLOOM_INDEX", i.toString()).compile();
   }
   postRender.end();

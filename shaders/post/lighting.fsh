@@ -94,29 +94,13 @@ void main() {
   vec3 directLight = brdf * shadow;
   vec3 indirectLight = (blocklight + skylight + ambient) * vanillaAO * labAO;
 
-  color.rgb *= indirectLight + directLight;
-  // color.rgb += emissiveFinal;
-
-  vec3 hdrColor = color.rgb;
+  color *= indirectLight + directLight;
 
   int labSpecAlpha = int(labSpecular.a * 255.0 + 0.5);
-  
-  // float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
+  vec3 labEmissive = (labSpecAlpha >= 1 && labSpecAlpha <= 254) ? vec3(labSpecAlpha) * color * emissiveIntensity : vec3(0.0);
 
-  // if (brightness > 1.0) {
-  //   bloom = vec3(color.rgb); 
-  // } else {
-  //   bloom = vec3(0.0);
-  // };
-
-  // float threshold = 1.0;   // minimum brightness to bloom
-  // float knee = 0.5;        // smooth fade range
-  // float x = max(0.0, brightness - threshold);
-  // float contribution = x * x / (x + knee * knee);
-
-  vec3 bloomMasked = (labSpecAlpha >= 1 && labSpecAlpha <= 254) ? hdrColor : vec3(0.0);
-
-  bloom = bloomMasked;
+  color += labEmissive;
+  bloom = color;
   
   colorOut = vec4(color, 1.0);
 }
