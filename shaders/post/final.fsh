@@ -13,7 +13,7 @@ void main() {
     vec3 hdrColor = texture(mainTex, uv).rgb;
     vec3 bloom = texture(bloomTex, uv).rgb;
 
-    hdrColor = mix(hdrColor, bloom, 0.04); // Bloom intensity
+    hdrColor = mix(hdrColor, bloom, 0.025); // Bloom intensity
 
     vec3 hdrSceneFinal = uncharted2(hdrColor);
     
