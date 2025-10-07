@@ -15,10 +15,10 @@ void main() {
 
     hdrColor = mix(hdrColor, bloom, 0.025); // Bloom intensity
 
-    vec3 hdrSceneFinal = uncharted2(hdrColor);
+    hdrColor = agx(hdrColor);
     
     //HDR -> SDR
-    hdrSceneFinal = pow(hdrSceneFinal, vec3(1.0 / 2.2));
+    hdrColor = pow(hdrColor, vec3(1.0 / 2.2));
     
-    colorOut = vec4(hdrSceneFinal, 1.0);
+    colorOut = vec4(hdrColor, 1.0);
 }
