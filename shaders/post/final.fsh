@@ -15,7 +15,7 @@ void main() {
 
     hdrColor = mix(hdrColor, bloom, 0.025); // Bloom intensity
 
-    hdrColor = agx(hdrColor);
+    hdrColor = reinhard2(hdrColor);
     
     //HDR -> SDR
     hdrColor = pow(hdrColor, vec3(1.0 / 2.2));

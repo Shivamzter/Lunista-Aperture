@@ -57,11 +57,9 @@ void iris_sendParameters(VertexData data) {
     // ao = data.ao;
 
     // from Jbritains Glint shader
-    tbnMatrix[2] = normalize(mat3(iris_normalMatrix) * data.normal.xyz);
-    tbnMatrix[0] = normalize(mat3(iris_normalMatrix) * data.tangent.xyz);
-    tbnMatrix[1] = normalize(
-    cross(tbnMatrix[0], tbnMatrix[2]) * data.tangent.w
-    );
+    tbnMatrix[2] = normalize(iris_normalMatrix * data.normal);
+    tbnMatrix[0] = normalize(iris_normalMatrix * data.tangent.xyz);
+    tbnMatrix[1] = normalize(cross(tbnMatrix[0], tbnMatrix[2]) * sign(data.tangent.w));
 
     normal = mat3(ap.camera.viewInv) * tbnMatrix[2]; // view to player space
     tbnMatrix = mat3(ap.camera.viewInv) * tbnMatrix; // view to player space

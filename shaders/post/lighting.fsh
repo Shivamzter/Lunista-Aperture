@@ -7,7 +7,6 @@ uniform sampler2D mainTex; // colortex0
 uniform sampler2D lightmapTex;
 uniform sampler2D normalTex;
 uniform sampler2D specularTex;
-uniform sampler2D labNormalTex;
 uniform sampler2D flatNormalTex;
 
 uniform sampler2DArrayShadow shadowMapFiltered;
@@ -48,8 +47,7 @@ void main() {
   vec2 lightmap = texture(lightmapTex, uv).rg;
   vec4 labSpecular = texture(specularTex, uv);
   vec4 encodedNormal = texture(normalTex, uv);
-  vec3 labNormal = texture(labNormalTex, uv).rgb;
-  vec3 flatNormal = texture(flatNormalTex, uv).rgb;
+  vec4 flatNormal = texture(flatNormalTex, uv);
 
   float depth = texture(mainDepthTex, uv).r;
 
@@ -57,12 +55,11 @@ void main() {
   //   return;
   // }
 
-  vec3 encodedNorm = normalize(encodedNormal.rgb * 2.0 - 1.0);
-  float vanillaAO = encodedNormal.a;
+  float labAO = encodedNormal.a;
+  float vanillaAO = flatNormal.a;
 
-  vec3 flatNorm = normalize(flatNormal * 2.0 - 1.0);
-
-  float labAO = labNormal.b;
+  encodedNormal.rgb = normalize(encodedNormal.rgb * 2.0 - 1.0);
+  flatNormal.rgb = normalize(flatNormal.rgb * 2.0 - 1.0);
 
   float labRoughness = labSpecular.r;
   labRoughness = pow(1.0 - labRoughness, 2.0);
@@ -84,12 +81,12 @@ void main() {
   vec3 lightDir = mat3(ap.camera.viewInv) * normalize(ap.celestial.pos); // view to player space
   vec3 viewDir = normalize(-eyePlayerPos); // player space
 
-  vec3 brdf = microfacetBRDF(lightDir, viewDir, encodedNorm, labSpecG, labRoughness, color, lightColor);
+  vec3 brdf = microfacetBRDF(lightDir, viewDir, encodedNormal.rgb, labSpecG, labRoughness, color, lightColor);
 
   vec3 skylight = lightmap.g * skylightColor;
   vec3 blocklight = lightmap.r * blocklightColor;
 
-  vec3 shadow = get_shadowed(playerFeetPos, flatNorm, lightDir);
+  vec3 shadow = get_shadowed(playerFeetPos, flatNormal.rgb, lightDir);
 
   vec3 directLight = brdf * shadow;
   vec3 indirectLight = (blocklight + skylight + ambient) * vanillaAO * labAO;

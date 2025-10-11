@@ -4,8 +4,7 @@ layout (location = 0) out vec4 fragColor;
 layout (location = 1) out vec4 lightmapData;
 layout (location = 2) out vec4 encodedNormal;
 layout (location = 3) out vec4 labSpecular;
-layout (location = 4) out vec4 labNormal;
-layout (location = 5) out vec3 flatNormal;
+layout (location = 5) out vec4 flatNormal;
 
 in vec2 uv;
 in vec2 light;
@@ -25,10 +24,13 @@ void iris_emitFragment() {
     fragColor.rgb = pow(fragColor.rgb, vec3(2.2));
 
     // Decode LabPBR normal
-    labNormal = iris_sampleNormalMap(uv);
-    vec3 tangentNormal = labNormal.xyz * 2.0 - 1.0;
-    tangentNormal.z = sqrt(1.0 - dot(tangentNormal.xy, tangentNormal.xy));
-    tangentNormal = tbnMatrix * tangentNormal;
+    vec4 labNormal = iris_sampleNormalMap(uv);
+
+    float labAO = labNormal.b;
+
+    labNormal.xy = labNormal.xy * 2.0 - 1.0;
+    labNormal.z = sqrt(1.0 - dot(labNormal.xy, labNormal.xy));
+    labNormal.xyz = normalize(tbnMatrix * labNormal.xyz);
 
     // Decode LabPBR specular
     labSpecular = iris_sampleSpecularMap(uv);
@@ -45,7 +47,7 @@ void iris_emitFragment() {
 
     lightmapData = vec4(light, 0.0, 1.0);
     
-    flatNormal = normal * 0.5 + 0.5; // convert to [0, 1] range
+    flatNormal = vec4(normal * 0.5 + 0.5, ao); // convert to [0, 1] range
     
-    encodedNormal = vec4(tangentNormal * 0.5 + 0.5, ao);
+    encodedNormal = vec4(labNormal.xyz * 0.5 + 0.5, labAO);
 }

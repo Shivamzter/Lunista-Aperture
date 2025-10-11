@@ -18,10 +18,9 @@ function configurePipeline(pipeline) {
   let lightmapTex = pipeline.createTexture("lightmapTex").width(screenWidth).height(screenHeight).build();
   let normalTex = pipeline.createTexture("normalTex").width(screenWidth).height(screenHeight).build();
   let specularTex = pipeline.createTexture("specularTex").width(screenWidth).height(screenHeight).format(Format.RGBA16F).build();
-  let labNormalTex = pipeline.createTexture("labNormalTex").width(screenWidth).height(screenHeight).format(Format.RGBA8).build();
   let flatNormalTex = pipeline.createTexture("flatNormalTex").width(screenWidth).height(screenHeight).build();
   const bloomTex = pipeline.createTexture("bloomTex").format(Format.R11F_G11F_B10F).width(screenWidth).height(screenHeight).clear(true).mipmap(true).build();
-  pipeline.createObjectShader("basic", Usage.BASIC).vertex("objects/basic.vsh").fragment("objects/basic.fsh").target(0, mainTex).target(1, lightmapTex).target(2, normalTex).target(3, specularTex).target(4, labNormalTex).target(5, flatNormalTex).compile();
+  pipeline.createObjectShader("basic", Usage.BASIC).vertex("objects/basic.vsh").fragment("objects/basic.fsh").target(0, mainTex).target(1, lightmapTex).target(2, normalTex).target(3, specularTex).target(4, flatNormalTex).compile();
   pipeline.createObjectShader("basic", Usage.SHADOW).vertex("objects/shadow.vsh").fragment("objects/shadow.fsh").compile();
   let postRender = pipeline.forStage(Stage.POST_RENDER);
   postRender.createComposite("lighting").vertex("post/fullscreen_Pass.vsh").fragment("post/lighting.fsh").target(0, mainTex).target(1, bloomTex).compile();
