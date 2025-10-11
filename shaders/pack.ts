@@ -11,6 +11,7 @@ export function configureRenderer(renderer: RendererConfig): void {
   renderer.disableShade = false;
 
   // renderer.render.sun = false;
+  renderer.render.clouds = false;
 
   renderer.shadow.resolution = 1592;
   renderer.shadow.far = 192;
@@ -117,6 +118,14 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .fragment("post/lighting.fsh")
     .target(0, mainTex)
     .target(1, bloomTex)
+    .compile();
+
+  postRender
+    .createComposite("clouds")
+    .vertex("post/fullscreen_Pass.vsh")
+    .fragment("post/clouds.fsh")
+    .target(0, mainTex)
+    // .target(1, bloomTex)
     .compile();
 
   for (let i = 0; i < 6; i++) {

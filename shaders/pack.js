@@ -5,6 +5,7 @@ function configureRenderer(renderer) {
   renderer.ambientOcclusionLevel = 1;
   renderer.mergedHandDepth = true;
   renderer.disableShade = false;
+  renderer.render.clouds = false;
   renderer.shadow.resolution = 1592;
   renderer.shadow.far = 192;
   renderer.shadow.distance = 192;
@@ -24,6 +25,7 @@ function configurePipeline(pipeline) {
   pipeline.createObjectShader("basic", Usage.SHADOW).vertex("objects/shadow.vsh").fragment("objects/shadow.fsh").compile();
   let postRender = pipeline.forStage(Stage.POST_RENDER);
   postRender.createComposite("lighting").vertex("post/fullscreen_Pass.vsh").fragment("post/lighting.fsh").target(0, mainTex).target(1, bloomTex).compile();
+  postRender.createComposite("clouds").vertex("post/fullscreen_Pass.vsh").fragment("post/clouds.fsh").target(0, mainTex).compile();
   for (let i = 0; i < 6; i++) {
     postRender.createComposite(`bloomDownsample${i}-${i + 1}`).vertex("post/fullscreen_Pass.vsh").fragment("post/bloom_Downsample.fsh").target(0, bloomTex, i + 1).define("BLOOM_INDEX", i.toString()).compile();
   }
