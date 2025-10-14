@@ -1,7 +1,7 @@
 #version 460 core
 
 #include "/lib/brdf.glsl"
-
+#include "/lib/spaceConversion.glsl"
 
 uniform sampler2D mainTex; // colortex0
 uniform sampler2D lightmapTex;
@@ -66,19 +66,14 @@ void main() {
   labRoughness = clamp(labRoughness, 0.001, 1.0);
 
   float labSpecG = labSpecular.g;
-
-
-  // float labEmissive = float(labEmissiveDecode);
-
-  // float labEmissive = fract(labSpecular.a);
-  // vec3 emissiveFinal = labEmissive * color;
   
-  vec3 NDCPos = vec3(uv, depth) * 2.0 - 1.0;
+  vec3 screenPos = vec3(uv, depth);
+  vec3 NDCPos = screenPos * 2.0 - 1.0;
 	vec3 viewPos = projectAndDivide(ap.camera.projectionInv, NDCPos);
-  vec3 eyePlayerPos = mat3(ap.camera.viewInv) * viewPos; // player space
-  vec3 playerFeetPos = eyePlayerPos + ap.camera.viewInv[3].xyz; // player space
+  vec3 eyePlayerPos = mat3(ap.camera.viewInv) * viewPos;
+  vec3 playerFeetPos = (ap.camera.viewInv * vec4(viewPos, 1.0)).xyz;
 
-  vec3 lightDir = mat3(ap.camera.viewInv) * normalize(ap.celestial.pos); // view to player space
+  vec3 lightDir = mat3(ap.camera.viewInv) * normalize(ap.celestial.pos); // view to eyePlayer space
   vec3 viewDir = normalize(-eyePlayerPos); // player space
 
   vec3 brdf = microfacetBRDF(lightDir, viewDir, encodedNormal.rgb, labSpecG, labRoughness, color, lightColor);
@@ -93,8 +88,10 @@ void main() {
 
   color *= indirectLight + directLight;
 
-  int labSpecAlpha = int(labSpecular.a * 255.0 + 0.5);
-  vec3 labEmissive = (labSpecAlpha >= 1 && labSpecAlpha <= 254) ? vec3(labSpecAlpha) * color * emissiveIntensity : vec3(0.0);
+  int labSpecA = int(labSpecular.a * 255.0 + 0.5);
+  // vec3 labEmissive = vec3(labSpecA) * color * emissiveIntensity;
+
+  vec3 labEmissive = (labSpecA >= 1 && labSpecA <= 254) ? vec3(labSpecA) * color * emissiveIntensity : vec3(0.0);
 
   color += labEmissive;
   bloom = color;
