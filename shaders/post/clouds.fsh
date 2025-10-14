@@ -62,7 +62,7 @@ void main() {
         vec3 rayDir = normalize(pos.xyz);
 
         vec2 cloudPlane = rayDir.xz * 1.0/rayDir.y + 0.05 * ap.world.time * 0.0075;
-        vec2 cloudPlane2 = rayDir.xz * 3.0/rayDir.y - 0.05 * ap.world.time * 0.00125;
+        vec2 cloudPlane2 = rayDir.xz * 3.0/rayDir.y - 0.02 * ap.world.time * 0.00125;
 
         //add clouds
         vec4 clouds;
@@ -73,13 +73,16 @@ void main() {
             clouds = vec4(0.0);
         }
 
-        float cloud_fog = 1.0/rayDir.y;
+        float cloud_fog = 1.0 + 1.0/rayDir.y;
 
-        clouds.a = clamp((clouds.a - 0.3) * 4.0, 0.0, 2.0);
+        // Making holes and density
+        clouds.a = clamp((clouds.a - (0.3 * (1.0 - ap.world.rain))) * 4.0, 0.0, 2.0);
+        // Color
         clouds.rgb = vec3(1.0);
+        // Shading
         clouds.rgb *= 1.0 - clamp((clouds.a - 0.5) * 0.1, 0.0, 0.25);
 
-        color.rgb = mix(color.rgb, clouds.rgb, min(clouds.a, 1.0) / (cloud_fog * 1.0));
+        color.rgb = mix(color.rgb, clouds.rgb, min(clouds.a, 1.0) / max(1.0, cloud_fog * 1.0));
 
         // colorOut = vec4(color.rgb, 1.0);
     }
