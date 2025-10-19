@@ -22,104 +22,100 @@ declare class RendererConfig {
   ambientOcclusionLevel: number;
   mergedHandDepth: boolean;
   disableShade: boolean;
-  dimension: NamespacedId;
+  dimension : NamespacedId;
 
-  shadow: ShadowSettings;
-  pointLight: PointShadowSettings;
-  render: RenderSettings;
+  shadow : ShadowSettings;
+  pointLight : PointShadowSettings;
+  render : RenderSettings;
 }
 
 declare enum DrawMode {
-  TRIANGLE,
-  TRIANGLE_FAN,
-  QUAD,
-  POINT,
+    TRIANGLE,
+    TRIANGLE_FAN,
+    QUAD,
+    POINT
 }
 
 declare class IndirectDraw implements Command {
-  vertex(loc: string): IndirectDraw;
-  geometry(loc: string): IndirectDraw;
-  control(loc: string): IndirectDraw;
-  eval(loc: string): IndirectDraw;
-  fragment(loc: string): IndirectDraw;
+    vertex(loc: string): IndirectDraw;
+    geometry(loc: string): IndirectDraw;
+    control(loc: string): IndirectDraw;
+    eval(loc: string): IndirectDraw;
+    fragment(loc: string): IndirectDraw;
 
-  state(state: StateReference): IndirectDraw;
+    state(state: StateReference): IndirectDraw;
 
-  target(index: number, tex: BuiltTexture | undefined): IndirectDraw;
-  target(
-    index: number,
-    tex: BuiltTexture | undefined,
-    mip: number
-  ): IndirectDraw;
-  ssbo(index: number, buf: BuiltBuffer | undefined): IndirectDraw;
-  ubo(index: number, buf: BuiltBuffer | undefined): IndirectDraw;
-  define(key: string, value: string): IndirectDraw;
-  depthTest(enable: boolean): IndirectDraw;
+    target(index: number, tex: BuiltTexture | undefined): IndirectDraw;
+    target(index: number, tex: BuiltTexture | undefined, mip: number): IndirectDraw;
+    ssbo(index: number, buf: BuiltBuffer | undefined): IndirectDraw;
+    ubo(index: number, buf: BuiltBuffer | undefined): IndirectDraw;
+    define(key: string, value: string): IndirectDraw;
+    depthTest(enable: boolean): IndirectDraw;
 
-  blendFunc(
-    index: number,
-    srcRGB: BlendModeFunction,
-    dstRGB: BlendModeFunction,
-    srcA: BlendModeFunction,
-    dstA: BlendModeFunction
-  ): IndirectDraw;
+    blendFunc(
+            index: number,
+            srcRGB: BlendModeFunction,
+            dstRGB: BlendModeFunction,
+            srcA: BlendModeFunction,
+            dstA: BlendModeFunction,
+    ): IndirectDraw;
 
-  compile(): PostPass;
+    compile(): PostPass;
 }
 
 declare class PointShadowSettings {
-  /**
-   * The resolution for point-light shadow maps.
-   */
-  resolution: number;
-  /**
-   * The maximum number of point-light shadows that can exist per-frame.
-   */
-  maxCount: number;
-  /**
-   * The maximum number of point-light shadow maps that can be updated per-frame.
-   */
-  maxUpdates: number;
-  /**
-   * The number of nearest lights (to camera) that will include entities and be updated every frame.
-   */
-  realTimeCount: number;
-  /**
-   * Allows caching of terrain rendering for realtime lights.
-   */
-  cacheRealTimeTerrain: boolean;
-  /**
-   * The minimum threshold in ranking [0.0-1.0] that is required for a pending light to replace an existing light.
-   */
-  updateThreshold: number;
-  nearPlane: number;
-  farPlane: number;
+    /**
+     * The resolution for point-light shadow maps.
+     */
+    resolution : number;
+    /**
+     * The maximum number of point-light shadows that can exist per-frame.
+     */
+    maxCount : number;
+    /**
+     * The maximum number of point-light shadow maps that can be updated per-frame.
+     */
+    maxUpdates : number;
+    /**
+     * The number of nearest lights (to camera) that will include entities and be updated every frame.
+     */
+    realTimeCount : number;
+    /**
+     * Allows caching of terrain rendering for realtime lights.
+     */
+    cacheRealTimeTerrain : boolean;
+    /**
+     * The minimum threshold in ranking [0.0-1.0] that is required for a pending light to replace an existing light.
+     */
+    updateThreshold : number;
+    nearPlane : number;
+    farPlane : number;
 }
 
 declare class ShadowSettings {
-  resolution: number;
-  cascades: number;
-  pssmLambda: number;
-  closestImportantDistance: number;
-  outerMarginBlocks: number;
-  outerMarginPixels: number;
-  entityCascadeCount: number;
-  safeZone: number[];
-  distance: number;
-  near: number;
-  far: number;
-  enabled: boolean;
+    resolution : number;
+    cascades : number;
+    pssmLambda : number;
+    closestImportantDistance : number;
+    outerMarginBlocks : number;
+    outerMarginPixels : number;
+    entityCascadeCount : number;
+    safeZone : number[];
+    distance : number;
+    near : number;
+    far : number;
+    enabled : boolean;
 }
 
 declare class RenderSettings {
-  sun: boolean;
-  horizon: boolean;
-  clouds: boolean;
-  moon: boolean;
-  vignette: boolean;
-  waterOverlay: boolean;
-  entityShadow: boolean;
-  stars: boolean;
+    sun : boolean;
+    horizon : boolean;
+    clouds : boolean;
+    moon : boolean;
+    vignette : boolean;
+    waterOverlay : boolean;
+    entityShadow : boolean;
+    stars : boolean;
 }
 
 // Formats/stages/usages
@@ -130,56 +126,52 @@ declare class RenderSettings {
 interface ProgramStage {}
 
 declare class NamespacedId {
-  /**
-   * Creates a new NamespacedId from a combined string. If the string is in the format `namespace:path`, the NamespacedId will be created accordingly, otherwise it will use the `minecraft` namespace.
-   * @param combined The combined `namespace:path`, or `path` if `minecraft` is the desired namespace
-   */
-  constructor(combined: string);
+    /**
+     * Creates a new NamespacedId from a combined string. If the string is in the format `namespace:path`, the NamespacedId will be created accordingly, otherwise it will use the `minecraft` namespace.
+     * @param combined The combined `namespace:path`, or `path` if `minecraft` is the desired namespace
+     */
+    constructor(combined : string);
 
-  /**
-   * Creates a new NamespacedId from a separate namespace and path.
-   */
-  constructor(namespace: string, path: string);
+    /**
+     * Creates a new NamespacedId from a separate namespace and path.
+     */
+    constructor(namespace : string, path : string);
 
-  getNamespace(): string;
-  getPath(): string;
+    getNamespace() : string;
+    getPath() : string;
 }
 
 /**
  * The possible program stages for post passes.
  */
 declare namespace Stage {
-  /**
-   * Runs before any rendering takes place.
-   */
+    /**
+    * Runs before any rendering takes place.
+    */
   let PRE_RENDER: ProgramStage;
 
-  /**
-   * Runs after the shadow pass is drawn.
-   */
+    /**
+    * Runs after the shadow pass is drawn.
+    */
   let POST_SHADOW: ProgramStage;
 
-  /**
-   * Runs after all main rendering takes place.
-   */
+    /**
+     * Runs after all main rendering takes place.
+     */
   let POST_RENDER: ProgramStage;
 
-  /**
-   * Runs after opaque terrain is rendered, but before translucent terrain and entities.
-   */
+    /**
+     * Runs after opaque terrain is rendered, but before translucent terrain and entities.
+     */
   let PRE_TRANSLUCENT: ProgramStage;
 
-  /**
-   * Runs only once; when the shader is set up (or the screen is resized).
-   */
+    /**
+     * Runs only once; when the shader is set up (or the screen is resized).
+     */
   let SCREEN_SETUP: ProgramStage;
 }
 
-declare function writeMatrixToAddress(
-  buffer: BuiltStreamingBuffer,
-  offset: number,
-  matrix: Matrix4f
-);
+declare function writeMatrixToAddress(buffer : BuiltStreamingBuffer, offset : number, matrix : Matrix4f);
 
 /**
  * @see Usage
@@ -221,16 +213,13 @@ declare class BuiltPage {}
 
 declare function asInt(name: string, ...values: number[]): IntSetting;
 declare function asFloat(name: string, ...values: number[]): FloatSetting;
-declare function putTextLabel(id: string, text: string): BuiltSetting;
-declare function putTranslationLabel(id: string, text: string): BuiltSetting;
+declare function putTextLabel(id : string, text : string) : BuiltSetting
+declare function putTranslationLabel(id : string, text : string) : BuiltSetting
 declare function asString(name: string, ...values: string[]): StringSetting;
-declare function asBool(
-  name: string,
-  defaultValue: boolean,
-  reload: boolean
-): BuiltSetting;
+declare function asBool(name: string, defaultValue: boolean, reload: boolean): BuiltSetting;
 
 declare var EMPTY: BuiltPage;
+
 
 /**
  * Sets the light color for the provided block.
@@ -246,7 +235,7 @@ declare function setLightColor(
   r: number,
   g: number,
   b: number,
-  a: number
+  a: number,
 ): void;
 
 /**
@@ -256,8 +245,11 @@ declare function setLightColor(
  * @alpha
  */
 declare function setLightColor(name: NamespacedId, hex: number): void;
+declare function setBiomeInfo(name: NamespacedId, hex: number): void;
 
 // Uniforms
+
+
 
 /**
  * Registers a define for all future shaders. Behavior for shaders already made is undefined.
@@ -271,180 +263,173 @@ declare function defineGlobally(key: string, value: string | number): void;
 interface BuiltObjectShader {}
 interface PostPass {}
 
-/**
- * For {@link addBarrier}. Indicates all SSBO operations must be visible in the next pass.
- */
-declare var SSBO_BIT: number;
-
-/**
- * For {@link addBarrier}. Indicates all UBO operations must be visible in the next pass.
- */
-declare var UBO_BIT: number;
-
-/**
- * For {@link addBarrier}. Indicates all imageStore operations must be visible in the next pass.
- */
-declare var IMAGE_BIT: number;
-
-/**
- * For {@link addBarrier}. Indicates all texture fetch operations must reflect data set in past passes.
- */
-declare var FETCH_BIT: number;
 
 /**
  * For a memory barrier. Indicates a "texture barrier", a special operation in OpenGL.
+ * Not yet implemented in the Slang branch.
  */
 declare var GL_TEXTURE_BARRIER: number;
 
 declare class Cubemap {
-  imageName(name: string): Cubemap;
+    imageName(name: string): Cubemap;
 
-  width(width: number): Cubemap;
-  height(height: number): Cubemap;
+    width(width: number): Cubemap;
+    height(height: number): Cubemap;
 
-  format(internalFormat: InternalTextureFormat): Cubemap;
+    format(internalFormat: InternalTextureFormat): Cubemap;
 
-  clear(clear: boolean): Cubemap;
-  clearColor(r: number, g: number, b: number, a: number): Cubemap;
+    clear(clear: boolean): Cubemap;
+    clearColor(r: number, g: number, b: number, a: number): Cubemap;
 
-  mipmap(mipmap: boolean): Cubemap;
-  build(): BuiltTexture;
+    mipmap(mipmap: boolean): Cubemap;
+    build(): BuiltTexture;
+}
+
+declare class ExportList {
+  addBool(name : string, value : boolean) : ExportList;
+  addInt(name : string, value : number) : ExportList;
+  addFloat(name : string, value : number) : ExportList;
+
+  build() : BuiltExportList;
+}
+
+declare interface BuiltExportList {
+
 }
 
 declare class PipelineConfig {
-  forStage(stage: ProgramStage): CommandList;
+    forStage(stage : ProgramStage) : CommandList;
 
-  createObjectShader(name: string, usage: ProgramUsage): ObjectShader;
+    createObjectShader(name : string, usage : ProgramUsage) : ObjectShader;
 
-  getRendererConfig(): RendererConfig;
+    getRendererConfig() : RendererConfig;
 
-  addTag(index: number, tag: NamespacedId): void;
+    addTag(index : number, tag : NamespacedId) : void;
 
-  createTag(tag: NamespacedId, ...blocks: NamespacedId[]): NamespacedId;
+    createTag(tag : NamespacedId, ...blocks : NamespacedId[]) : NamespacedId;
 
-  createCombinationPass(location: string): CombinationPass;
+    createCombinationPass(location: string) : CombinationPass;
 
-  // Textures
+    // Textures
 
-  createTexture(name: string): Texture;
-  createImageTexture(sampler: string, image: string): Texture;
+    createTexture(name : string) : Texture;
+    createImageTexture(sampler : string, image : string) : Texture;
 
-  createArrayTexture(name: string): ArrayTexture;
-  createImageArrayTexture(sampler: string, image: string): ArrayTexture;
+    createArrayTexture(name : string) : ArrayTexture;
+    createImageArrayTexture(sampler : string, image : string) : ArrayTexture;
 
-  createCubemapTexture(name: string): Cubemap;
-  createImageCubemapTexture(sampler: string, image: string): Cubemap;
+    createCubemapTexture(name : string) : Cubemap;
+    createImageCubemapTexture(sampler : string, image : string) : Cubemap;
 
-  /**
-   * Creates a reference to a texture that can change.
-   * @param sampler The sampler name
-   * @param image The image name (can be null)
-   * @param width The width
-   * @param height The height (or 1 if it's a 1D texture)
-   * @param depth The depth (or 1 if it's a 1D/2D texture, or 6 for a cubemap)
-   * @param format The internal format
-   */
-  createTextureReference(
-    sampler: string,
-    image: string | null,
-    width: number,
-    height: number,
-    depth: number,
-    format: InternalTextureFormat
-  ): TextureReference;
+    setGlobalExport(list : BuiltExportList) : void;
 
-  importPNGTexture(
-    name: string,
-    location: string,
-    linearFilter: boolean,
-    clamp: boolean
-  ): PNGTexture;
+    createExportList() : ExportList;
 
-  importRawTexture(name: string, location: string): RawTexture;
+    /**
+     * Creates a reference to a texture that can change.
+     * @param sampler The sampler name
+     * @param image The image name (can be null)
+     * @param width The width
+     * @param height The height (or 1 if it's a 1D texture)
+     * @param depth The depth (or 1 if it's a 1D/2D texture, or 6 for a cubemap)
+     * @param format The internal format
+     */
+    createTextureReference(sampler : string, image : string | null, width : number, height : number, depth : number, format : InternalTextureFormat) : TextureReference;
 
-  createBuffer(size: number, clear: boolean): BuiltBuffer;
-  createStreamingBuffer(size: number): BuiltStreamingBuffer;
+    importPNGTexture(name : string, location : string, linearFilter : boolean, clamp : boolean) : PNGTexture;
+
+    importRawTexture(name : string, location : string) : RawTexture;
+
+    createBuffer(name : string, size : number, clear : boolean) : BuiltBuffer;
+    createStreamingBuffer(name : string, size : number) : BuiltStreamingBuffer;
 }
 
 declare class StateReference {
-  constructor();
+    constructor();
 
-  enable(): void;
+    enable() : void;
 
-  disable(): void;
+    disable() : void;
 
-  setEnabled(enabled: boolean): void;
+    setEnabled(enabled : boolean) : void;
 
-  isEnabled(): boolean;
+    isEnabled() : boolean;
 }
 
 declare class CommandList {
-  pass(cmd: Command): CommandList;
+    pass(cmd : Command) : CommandList;
 
-  createComposite(name: string): Composite;
+    createComposite(name : string) : Composite;
 
-  createCompute(name: string): Compute;
+    createCompute(name : string) : Compute;
 
-  createIndirectDraw(
-    name: string,
-    buffer: BuiltGPUBuffer,
-    mode: DrawMode,
-    maxVertices: number
-  ): IndirectDraw;
+    createIndirectDraw(name : string, buffer : BuiltGPUBuffer, mode : DrawMode, maxVertices : number) : IndirectDraw;
 
-  barrier(barrier: number, state?: StateReference): CommandList;
+    generateMips(...tex : BuiltTexture[]) : CommandList;
 
-  generateMips(...tex: BuiltTexture[]): CommandList;
+    copy(src : BuiltTexture, dst : BuiltTexture, width : number, height : number) : CommandList;
 
-  copy(
-    src: BuiltTexture,
-    dst: BuiltTexture,
-    width: number,
-    height: number
-  ): CommandList;
+    subList(name : string) : CommandList;
 
-  subList(name: string): CommandList;
-
-  end(): BuiltCommandList;
+    end() : BuiltCommandList;
 }
 
 declare interface BuiltCommandList {}
 
-interface Shader<T, X> {
-  ssbo(index: number, buf: BuiltBuffer | undefined): T;
-  ubo(index: number, buf: BuiltBuffer | undefined): T;
-  define(key: string, value: string): T;
 
-  compile(): X;
+interface Shader<T, X> {
+    ssbo(index: number, buf: BuiltBuffer | undefined): T;
+    ubo(index: number, buf: BuiltBuffer | undefined): T;
+
+  exportBool(name : string, value : boolean) : T;
+  exportInt(name : string, value : number) : T;
+  exportFloat(name : string, value : number) : T;
+  exportList(list : BuiltExportList) : T;
+
+  /**
+   * A object override. This replaces any bindings to {@param reference} with {@param target}. For example, Sampler2D TextureOne getting replaced with Sampler2D targetTexture.
+   * @param reference The name to look for.
+   * @param target The object to replace with.
+   */
+    overrideObject(reference:string, target:string): T;
+
+    compile(): X;
 }
 
 interface PostShader<T> extends Shader<T, PostPass> {
-  state(state: StateReference): T;
+    state(state: StateReference): T;
 }
 
 declare class ObjectShader implements Shader<ObjectShader, BuiltObjectShader> {
   private constructor(name: string, usage: ProgramUsage);
 
-  vertex(loc: string): ObjectShader;
-  geometry(loc: string): ObjectShader;
-  control(loc: string): ObjectShader;
-  eval(loc: string): ObjectShader;
-  fragment(loc: string): ObjectShader;
+  location(loc: string): ObjectShader;
+
+  vertex(entrypoint: string): ObjectShader;
+  geometry(entrypoint: string): ObjectShader;
+  control(entrypoint: string): ObjectShader;
+  eval(entrypoint: string): ObjectShader;
+  fragment(entrypoint: string): ObjectShader;
+  overrideObject(reference:string, target:string): ObjectShader;
 
   blendFunc(
-    index: number,
-    srcRGB: BlendModeFunction,
-    dstRGB: BlendModeFunction,
-    srcA: BlendModeFunction,
-    dstA: BlendModeFunction
-  ): ObjectShader;
+        index: number,
+        srcRGB: BlendModeFunction,
+        dstRGB: BlendModeFunction,
+        srcA: BlendModeFunction,
+        dstA: BlendModeFunction,
+    ): ObjectShader;
 
-  blendOff(index: number): ObjectShader;
+  blendOff(index : number) : ObjectShader;
 
   target(index: number, tex: BuiltTexture | undefined): ObjectShader;
   ssbo(index: number, buf: BuiltBuffer | undefined): ObjectShader;
   ubo(index: number, buf: BuiltBuffer | undefined): ObjectShader;
-  define(key: string, value: string): ObjectShader;
+
+  exportBool(name : string, value : boolean) : ObjectShader;
+  exportInt(name : string, value : number) : ObjectShader;
+  exportFloat(name : string, value : number) : ObjectShader;
+  exportList(list : BuiltExportList) : ObjectShader;
 
   compile(): BuiltObjectShader;
 }
@@ -452,11 +437,7 @@ declare class ObjectShader implements Shader<ObjectShader, BuiltObjectShader> {
 interface Command {}
 
 declare class Composite implements PostShader<Composite>, Command {
-  vertex(loc: string): Composite;
-  geometry(loc: string): Composite;
-  control(loc: string): Composite;
-  eval(loc: string): Composite;
-  fragment(loc: string): Composite;
+  location(loc : string, entrypoint : string) : Composite;
 
   state(state: StateReference): Composite;
 
@@ -464,26 +445,37 @@ declare class Composite implements PostShader<Composite>, Command {
   target(index: number, tex: BuiltTexture | undefined, mip: number): Composite;
   ssbo(index: number, buf: BuiltBuffer | undefined): Composite;
   ubo(index: number, buf: BuiltBuffer | undefined): Composite;
-  define(key: string, value: string): Composite;
+
+  exportBool(name : string, value : boolean) : Composite;
+  exportInt(name : string, value : number) : Composite;
+  exportFloat(name : string, value : number) : Composite;
+  exportList(list : BuiltExportList) : Composite;
+
+  overrideObject(reference:string, target:string): Composite;
 
   blendFunc(
     index: number,
     srcRGB: BlendModeFunction,
     dstRGB: BlendModeFunction,
     srcA: BlendModeFunction,
-    dstA: BlendModeFunction
+    dstA: BlendModeFunction,
   ): Composite;
 
   compile(): PostPass;
 }
 
 declare class Compute implements PostShader<Compute>, Command {
-  location(loc: string): Compute;
+  location(loc : string, entrypoint : string) : Compute;
   workGroups(x: number, y: number, z: number): Compute;
   ssbo(index: number, buf: BuiltBuffer | undefined): Compute;
   ubo(index: number, buf: BuiltBuffer | undefined): Compute;
-  define(key: string, value: string): Compute;
   state(state: StateReference): Compute;
+
+  exportBool(name : string, value : boolean) : Compute;
+  exportInt(name : string, value : number) : Compute;
+  exportFloat(name : string, value : number) : Compute;
+  exportList(list : BuiltExportList) : Compute;
+  overrideObject(reference:string, target:string): Compute;
 
   compile(): PostPass;
 }
@@ -497,7 +489,13 @@ declare class CombinationPass {
   constructor(location: string);
   ssbo(index: number, buf: BuiltBuffer | undefined): CombinationPass;
   ubo(index: number, buf: BuiltBuffer | undefined): CombinationPass;
-  define(key: string, value: string): CombinationPass;
+
+
+  exportBool(name : string, value : boolean) : CombinationPass;
+  exportInt(name : string, value : number) : CombinationPass;
+  exportFloat(name : string, value : number) : CombinationPass;
+  exportList(list : BuiltExportList) : CombinationPass;
+  overrideObject(reference:string, target:string): CombinationPass;
 
   compile(): BuiltCombinationPass;
 }
@@ -514,179 +512,203 @@ interface BuiltGPUBuffer extends BuiltBuffer {}
  */
 interface BuiltBuffer {}
 
-declare function isKeyDown(keyCode: number): boolean;
+declare function isKeyDown(keyCode : number) : boolean;
 
 /**
  * The result of a {@link StreamingBuffer}.
  */
 declare class BuiltStreamingBuffer implements BuiltBuffer {
-  setInt(offset: number, value: number): void;
-  setFloat(offset: number, value: number): void;
-  setBool(offset: number, value: boolean): void;
-  uploadData(): void;
+    setInt(offset : number, value: number): void;
+    setFloat(offset : number, value: number): void;
+    setBool(offset : number, value: boolean): void;
+    uploadData() : void;
 }
 
+
 declare class Vector2f {
-  /**
-   * Initializes to 0.
-   */
-  constructor();
-  constructor(x: number, y: number);
-  constructor(other: Vector2f);
+    /**
+     * Initializes to 0.
+     */
+    constructor();
+    constructor(x : number, y: number);
+    constructor(other : Vector2f);
 
-  x(): number;
-  y(): number;
+    x() : number;
+    y() : number;
 
-  x(newValue: number): void;
-  y(newValue: number): void;
+    x(newValue : number) : void;
+    y(newValue : number) : void;
 }
 
 declare class Vector3f {
-  /**
-   * Initializes to 0.
-   */
-  constructor();
+    /**
+     * Initializes to 0.
+     */
+    constructor();
 
-  constructor(x: number, y: number, z: number);
-  constructor(other: Vector3f);
+    constructor(x : number, y: number, z: number);
+    constructor(other : Vector3f);
 
-  x(): number;
-  y(): number;
-  z(): number;
+    x() : number;
+    y() : number;
+    z() : number;
 
-  x(newValue: number): void;
-  y(newValue: number): void;
-  z(newValue: number): void;
+    x(newValue : number) : void;
+    y(newValue : number) : void;
+    z(newValue : number) : void;
+}
+
+declare class Vector3d {
+    /**
+     * Initializes to 0.
+     */
+    constructor();
+
+    constructor(x : number, y: number, z: number);
+    constructor(other : Vector3d);
+
+    x() : number;
+    y() : number;
+    z() : number;
+
+    x(newValue : number) : void;
+    y(newValue : number) : void;
+    z(newValue : number) : void;
 }
 
 declare class Vector4f {
-  /**
-   * Initializes to (0, 0, 0, 1).
-   */
-  constructor();
+    /**
+     * Initializes to (0, 0, 0, 1).
+     */
+    constructor();
 
-  constructor(x: number, y: number, z: number, w: number);
-  constructor(other: Vector4f);
+    constructor(x : number, y: number, z: number, w : number);
+    constructor(other : Vector4f);
 
-  x(): number;
-  y(): number;
-  z(): number;
-  w(): number;
+    x() : number;
+    y() : number;
+    z() : number;
+    w() : number;
 
-  x(newValue: number): void;
-  y(newValue: number): void;
-  z(newValue: number): void;
-  w(newValue: number): void;
+    x(newValue : number) : void;
+    y(newValue : number) : void;
+    z(newValue : number) : void;
+    w(newValue : number) : void;
 }
 
 declare class Matrix4f {
-  /**
-   * Initializes to identity.
-   */
-  constructor();
+    /**
+     * Initializes to identity.
+     */
+    constructor();
 
-  /**
-   * Makes a copy of {@link matrix}.
-   * @param matrix The matrix to copy
-   * @return a new copy
-   */
-  constructor(matrix: Matrix4f);
+    /**
+     * Makes a copy of {@link matrix}.
+     * @param matrix The matrix to copy
+     * @return a new copy
+     */
+    constructor(matrix : Matrix4f);
 
-  m00(): number;
-  m01(): number;
-  m02(): number;
-  m03(): number;
-  m10(): number;
-  m11(): number;
-  m12(): number;
-  m13(): number;
-  m20(): number;
-  m21(): number;
-  m22(): number;
-  m23(): number;
-  m30(): number;
-  m31(): number;
-  m32(): number;
-  m33(): number;
+    m00() : number;
+    m01() : number;
+    m02() : number;
+    m03() : number;
+    m10() : number;
+    m11() : number;
+    m12() : number;
+    m13() : number;
+    m20() : number;
+    m21() : number;
+    m22() : number;
+    m23() : number;
+    m30() : number;
+    m31() : number;
+    m32() : number;
+    m33() : number;
 
-  m00(newValue: number): void;
-  m01(newValue: number): void;
-  m02(newValue: number): void;
-  m03(newValue: number): void;
-  m10(newValue: number): void;
-  m11(newValue: number): void;
-  m12(newValue: number): void;
-  m13(newValue: number): void;
-  m20(newValue: number): void;
-  m21(newValue: number): void;
-  m22(newValue: number): void;
-  m23(newValue: number): void;
-  m30(newValue: number): void;
-  m31(newValue: number): void;
-  m32(newValue: number): void;
-  m33(newValue: number): void;
+    m00(newValue : number) : void;
+    m01(newValue : number) : void;
+    m02(newValue : number) : void;
+    m03(newValue : number) : void;
+    m10(newValue : number) : void;
+    m11(newValue : number) : void;
+    m12(newValue : number) : void;
+    m13(newValue : number) : void;
+    m20(newValue : number) : void;
+    m21(newValue : number) : void;
+    m22(newValue : number) : void;
+    m23(newValue : number) : void;
+    m30(newValue : number) : void;
+    m31(newValue : number) : void;
+    m32(newValue : number) : void;
+    m33(newValue : number) : void;
 
-  /**
-   * This transforms the matrix with another one, and stores the result in {@link saveMatrix}.
-   * @param otherMatrix The other matrix
-   * @param saveMatrix The matrix that will store the result
-   * @returns saveMatrix
-   */
-  mul(otherMatrix: Matrix4f, saveMatrix: Matrix4f): Matrix4f;
+    /**
+     * This transforms the matrix with another one, and stores the result in {@link saveMatrix}.
+     * @param otherMatrix The other matrix
+     * @param saveMatrix The matrix that will store the result
+     * @returns saveMatrix
+     */
+    mul(otherMatrix : Matrix4f, saveMatrix : Matrix4f) : Matrix4f;
 
-  /**
-   * This transforms the matrix with a {@link Vector4f}, and stores the result in {@link saveVector}.
-   * @param vector The vector to transform
-   * @param saveVector The vector that will store the result
-   * @returns saveVector
-   */
-  transform(vector: Vector4f, saveVector: Vector4f): Vector4f;
+    /**
+     * This transforms the matrix with a {@link Vector4f}, and stores the result in {@link saveVector}.
+     * @param vector The vector to transform
+     * @param saveVector The vector that will store the result
+     * @returns saveVector
+     */
+    transform(vector : Vector4f, saveVector : Vector4f) : Vector4f;
 
-  /**
-   * This transforms the matrix with a {@link Vector3f}, and stores the result in {@link saveVector}.
-   * @param vector The vector to transform
-   * @param saveVector The vector that will store the result
-   * @returns saveVector
-   */
-  transformPosition(vector: Vector3f, saveVector: Vector3f): Vector3f;
+    /**
+     * This transforms the matrix with a {@link Vector3f}, and stores the result in {@link saveVector}.
+     * @param vector The vector to transform
+     * @param saveVector The vector that will store the result
+     * @returns saveVector
+     */
+    transformPosition(vector : Vector3f, saveVector : Vector3f) : Vector3f;
 
-  translate(x: number, y: number, z: number): Matrix4f;
-  scale(x: number, y: number, z: number): Matrix4f;
-  rotate(angle: number, x: number, y: number, z: number): Matrix4f;
+    translate(x : number, y : number, z : number) : Matrix4f;
+    scale(x : number, y : number, z : number) : Matrix4f;
+    rotate(angle : number, x : number, y : number, z : number) : Matrix4f;
 }
 
 declare class WorldState {
-  /**
-   * Returns the projection matrix. This will always be a new copy.
-   */
-  projection(): Matrix4f;
+    /**
+     * Returns the projection matrix. This will always be a new copy.
+     */
+    projection() : Matrix4f;
 
-  /**
-   * Returns the view matrix. This will always be a new copy.
-   */
-  view(): Matrix4f;
+    /**
+     * Returns the view matrix. This will always be a new copy.
+     */
+    view() : Matrix4f;
 
-  /**
-   * Returns the camera position. This will always be a new copy.
-   */
-  cameraPos(): Vector3f;
+    /**
+     * Returns the camera position. This will always be a new copy.
+     */
+    cameraPos() : Vector3f;
 
-  /**
-   * Return the last frame time (ap.time.delta).
-   */
-  lastFrameTime(): number;
+    /**
+     * Returns the current fluid the camera is submerged in.
+     */
+    currentFluid() : number;
 
-  /**
-   * Return the elapsed frame time (ap.time.elapsed).
-   */
-  frameTimeCounter(): number;
+    /**
+     * Return the last frame time (ap.time.delta).
+     */
+    lastFrameTime() : number;
 
-  /**
-   * Return the current frame (ap.time.frames).
-   */
-  currentFrame(): number;
+    /**
+     * Return the elapsed frame time (ap.time.elapsed).
+     */
+    frameTimeCounter() : number;
 
-  rendererConfig(): RendererConfig;
+    /**
+     * Return the current frame (ap.time.frames).
+     */
+    currentFrame() : number;
+
+    rendererConfig() : RendererConfig;
 }
 
 /**
@@ -711,29 +733,29 @@ interface InternalTextureFormat {}
  * This is also automatically implemented by {@link PNGTexture} and {@link RawTexture}.
  */
 interface BuiltTexture {
-  readBack(): ArrayBuffer;
+    readBack() : ArrayBuffer;
 
-  name(): string;
-  imageName(): string;
-  width(): number;
-  height(): number;
-  depth(): number;
+    name() : string;
+    imageName() : string;
+    width() : number;
+    height() : number;
+    depth() : number;
 }
 
 declare class TextureReference {
-  constructor(samplerName: string, imageName: string);
+    constructor(samplerName : string, imageName : string);
 
-  format(internalFormat: InternalTextureFormat): TextureReference;
+    format(internalFormat: InternalTextureFormat): TextureReference;
 
-  width(width: number): TextureReference;
-  height(height: number): TextureReference;
-  depth(depth: number): TextureReference;
+    width(width: number): TextureReference;
+    height(height: number): TextureReference;
+    depth(depth: number): TextureReference;
 
-  build(): ActiveTextureReference;
+    build() : ActiveTextureReference;
 }
 
 interface ActiveTextureReference extends BuiltTexture {
-  pointTo(t: BuiltTexture): ActiveTextureReference;
+    pointTo(t : BuiltTexture) : ActiveTextureReference;
 }
 
 /**
@@ -741,18 +763,18 @@ interface ActiveTextureReference extends BuiltTexture {
  * @see ArrayTexture
  */
 declare class Texture {
-  private constructor(name: string);
+	private constructor(name: string);
 
-  format(internalFormat: InternalTextureFormat): Texture;
-  width(width: number): Texture;
-  height(height: number): Texture;
-  depth(depth: number): Texture;
-  mipmap(mipmap: boolean): Texture;
-  clear(clear: boolean): Texture;
-  clearColor(r: number, g: number, b: number, a: number): Texture;
-  readBack(read: boolean): Texture;
+	format(internalFormat: InternalTextureFormat): Texture;
+	width(width: number): Texture;
+	height(height: number): Texture;
+	depth(depth: number): Texture;
+	mipmap(mipmap: boolean): Texture;
+	clear(clear: boolean): Texture;
+	clearColor(r: number, g: number, b: number, a: number): Texture;
+	readBack(read: boolean): Texture;
 
-  build(): BuiltTexture;
+	build(): BuiltTexture;
 }
 
 /**
@@ -783,7 +805,7 @@ declare class RawTexture {
  * @see Texture
  */
 declare class ArrayTexture {
-  private constructor(name: string);
+    private constructor(name: string);
 
   format(internalFormat: InternalTextureFormat): ArrayTexture;
   clearColor(r: number, g: number, b: number, a: number): ArrayTexture;
@@ -803,14 +825,14 @@ declare class ArrayTexture {
  * @see RawTexture
  */
 declare class PNGTexture implements BuiltTexture {
-  private constructor(name: string, loc: string, blur: boolean, clamp: boolean);
+    private constructor(name: string, loc: string, blur: boolean, clamp: boolean);
 
-  readBack(): ArrayBuffer;
-  name(): string;
-  imageName(): string;
-  width(): number;
-  height(): number;
-  depth(): number;
+    readBack(): ArrayBuffer;
+    name(): string;
+    imageName(): string;
+    width(): number;
+    height(): number;
+    depth(): number;
 }
 
 // The auto-generated stuff goes here
@@ -952,37 +974,37 @@ declare namespace Usage {
   let SHADOW_BLOCK_ENTITY_TRANSLUCENT: ProgramUsage;
   let SHADOW_PARTICLES: ProgramUsage;
   let SHADOW_PARTICLES_TRANSLUCENT: ProgramUsage;
-  let POINT: ProgramUsage;
+  let POINT : ProgramUsage;
 }
 
 /**
  * Even if a key is not in this list, it can still be used with {@link isKeyDown}. This is just a convenience enum.
  */
 declare enum Keys {
-  A,
-  B,
-  C,
-  D,
-  E,
-  F,
-  G,
-  H,
-  I,
-  J,
-  K,
-  L,
-  M,
-  N,
-  O,
-  P,
-  Q,
-  R,
-  S,
-  T,
-  U,
-  V,
-  W,
-  X,
-  Y,
-  Z,
+    A,
+    B,
+    C,
+    D,
+    E,
+    F,
+    G,
+    H,
+    I,
+    J,
+    K,
+    L,
+    M,
+    N,
+    O,
+    P,
+    Q,
+    R,
+    S,
+    T,
+    U,
+    V,
+    W,
+    X,
+    Y,
+    Z,
 }
