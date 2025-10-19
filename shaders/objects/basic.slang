@@ -53,6 +53,7 @@ float4 fragmentMain(VertexOutput input) : SV_Target0 { // See the comment in gam
     float4 color = defaultSampler.Sample(input.uv) * input.color;
 
     color.rgb *= lightmap.Sample(input.light).rgb;
+    color.rgb = pow(color.rgb, float3(2.2)); // Simple gamma correction.
 
     iris_discardIfNeeded(color); // This helper function is given by Aperture to auto-discard if needed in the object shader.
 
