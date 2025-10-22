@@ -21,6 +21,13 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .format(Format.RGB16)
     .build();
 
+  let normalTexture = pipeline
+    .createTexture("normalTexture")
+    .width(screenWidth)
+    .height(screenHeight)
+    .format(Format.RGBA8)
+    .build();
+
   let finalTexture = pipeline
     .createTexture("finalTexture")
     .width(screenWidth)
@@ -37,6 +44,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .location("objects/basic")
     .exportBool("disableFog", true)
     .target(0, mainTexture)
+    .target(1, normalTexture)
     .compile();
 
   // The following is a copy of the basic shader, but with disableFog enabled to avoid fog being run on the sky.
