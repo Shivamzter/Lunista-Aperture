@@ -14,7 +14,7 @@ struct VertexOutput {
     float2 light;
     float distance;
     float3 normal;
-    float4 tangent;
+    float3 tangent;
     float3x3 tbnMatrix;
 };
 
@@ -32,22 +32,31 @@ VertexOutput vertexMain(Vertex input) { // If we had any more vertex semantics w
     float3 normal = input.normal().orElse(float3(1.0, 1.0, 1.0)); // Model space
     float4 tangent = input.tangent().orElse(float4(1.0, 1.0, 1.0, 1.0)); // Model space
     
-    float3x3 tbnMatrix;
-    tbnMatrix[2] = normalize(mul(input.viewMatrix(), float4(normal.xyz, 1.0)).xyz); // Transform normal to view space.
-    tbnMatrix[0] = normalize(mul(input.viewMatrix(), float4(tangent.xyz, 1.0)).xyz); // Transform tangent to view space.
-    tbnMatrix[1] = normalize(cross(tbnMatrix[0], tbnMatrix[2]) * sign(tangent.w)); // Calculate bitangent in view space.
-    tbnMatrix = mul(float3x3(ap.camera.viewInv), tbnMatrix); // Transform TBN to world space.
-    
+    // float3x3 tbnMatrix;
+    // tbnMatrix[2] = (mul(input.normalMatrix(), normal).xyz); // Transform normal to view space.
+    // tbnMatrix[0] = (mul(input.normalMatrix(), tangent.xyz).xyz); // Transform tangent to view space.
+    // tbnMatrix[1] = normalize(cross(tbnMatrix[0], tbnMatrix[2]) * sign(tangent.w)); 
+    // tbnMatrix = float3x3(transpose(ap.camera.viewInv)) * tbnMatrix;
+
+    float3 vNormal = normalize(mul(input.normalMatrix(), normal)); // View space normal
+    float3 vTangent = normalize(mul(input.normalMatrix(), tangent.xyz)); // View space tangent
+    float3 vBitangent = normalize(cross(vTangent, vNormal) * sign(tangent.w));
+
+    // vNormal = normalize(mul(float3x3(ap.camera.viewInv), vNormal));
+    // vTangent = normalize(mul(float3x3(ap.camera.viewInv), vTangent));
+    // vBitangent = normalize(mul(float3x3(ap.camera.viewInv), vBitangent));
+
+    float3x3 tbnMatrix = float3x3(vTangent, vBitangent, vNormal); // World space TBN matrix
+    tbnMatrix = mul(float3x3(ap.camera.viewInv), transpose(tbnMatrix));
 
     output.position = mul(input.projectionMatrix(), mul(input.viewMatrix(), modelPos));
     output.uv = input.uv();
     output.color = input.color();
     output.light = input.light();
     output.distance = length(modelPos);
-    output.normal = normal;
-    output.tangent = tangent;
+    output.normal = vBitangent;
+    output.tangent = vTangent;
     output.tbnMatrix = tbnMatrix;
-
 
     // There is... one more thing we should deal with. When an entity gets hit and turns red, this is known as an "overlay color"; and that is a manual job.
     // Overlay color is one of the mentioned Optional semantics; we can check if it exists and apply it if so.
@@ -85,6 +94,7 @@ FragmentOutput fragmentMain(VertexOutput input) { // See the comment in gamma.sl
     float4 labNormal = normalTex.Sample(input.uv);
     labNormal.xy = labNormal.xy * 2.0 - 1.0;
     labNormal.z = sqrt(1.0 - dot(labNormal.xy, labNormal.xy));
+    
     labNormal.xyz = normalize(mul(tbnMatrix, labNormal.xyz));
 
     float3 flatNormal = input.normal; // Model space

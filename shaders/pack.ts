@@ -5,7 +5,7 @@ export function configureRenderer(renderer: RendererConfig): void {
   renderer.mergedHandDepth = true;
   renderer.ambientOcclusionLevel = 1.0;
   renderer.disableShade = false;
-  renderer.render.entityShadow = true;
+  renderer.render.entityShadow = false;
 }
 
 // This is where the shaders, buffers, and textures are configured.

@@ -3,7 +3,7 @@ function configureRenderer(renderer) {
   renderer.mergedHandDepth = true;
   renderer.ambientOcclusionLevel = 1;
   renderer.disableShade = false;
-  renderer.render.entityShadow = true;
+  renderer.render.entityShadow = false;
 }
 function configurePipeline(pipeline) {
   let mainTexture = pipeline.createTexture("mainTexture").width(screenWidth).height(screenHeight).format(Format.RGB16).build();
