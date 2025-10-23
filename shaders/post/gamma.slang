@@ -17,6 +17,10 @@ float4 applyGamma(float2 pos : SV_Position) : SV_Target0 {
     color.rgb = pow(color.rgb, 1.0 / 2.2);
 
     float4 normals = normalTexture[int2(pos)];
+
+    float labAO = normals.a;
+    color.rgb *= labAO;
+
     normals.rgb = normals.rgb * 0.5 + 0.5; // Decode normals from [0,1] to [-1,1]
-    return normals;
+    return color;
 }
