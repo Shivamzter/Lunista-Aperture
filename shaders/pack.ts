@@ -61,8 +61,8 @@ export function configurePipeline(pipeline: PipelineConfig): void {
 
   // A basic composite. Requires both a module and entrypoint.
   postRender
-    .createComposite("gamma")
-    .location("post/gamma", "applyGamma")
+    .createComposite("lighting")
+    .location("post/lighting", "applyLighting")
     .target(0, finalTexture)
     .compile();
 
@@ -75,7 +75,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
   postRender.end();
 
   // The combination pass. For more information, see the file.
-  pipeline.createCombinationPass("post/combination").compile();
+  pipeline.createCombinationPass("post/final").compile();
 }
 
 export function beginFrame(state: WorldState): void {

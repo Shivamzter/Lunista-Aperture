@@ -12,7 +12,7 @@ struct Output {
 */
 
 [[shader("fragment")]]
-float4 applyGamma(float2 pos : SV_Position) : SV_Target0 { 
+float4 applyLighting(float2 pos : SV_Position) : SV_Target0 { 
     float4 color = mainTexture[int2(pos)]; // acts as texelFetch would in GLSL. mainTexture.Sample is equivalent to `texture`.
     color.rgb = pow(color.rgb, 1.0 / 2.2);
 

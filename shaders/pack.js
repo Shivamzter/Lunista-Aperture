@@ -12,9 +12,9 @@ function configurePipeline(pipeline) {
   pipeline.createObjectShader("basic", Usage.BASIC).location("objects/basic").exportBool("disableFog", true).target(0, mainTexture).target(1, normalTexture).compile();
   pipeline.createObjectShader("sky", Usage.SKY_TEXTURES).location("objects/basic").target(0, mainTexture).exportBool("disableFog", true).compile();
   let postRender = pipeline.forStage(Stage.POST_RENDER);
-  postRender.createComposite("gamma").location("post/gamma", "applyGamma").target(0, finalTexture).compile();
+  postRender.createComposite("lighting").location("post/lighting", "applyLighting").target(0, finalTexture).compile();
   postRender.end();
-  pipeline.createCombinationPass("post/combination").compile();
+  pipeline.createCombinationPass("post/final").compile();
 }
 function beginFrame(state) {
 }
