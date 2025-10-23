@@ -37,7 +37,10 @@ VertexOutput vertexMain(Vertex input) { // If we had any more vertex semantics w
     tbnMatrix[2] = normalize(mul(input.normalMatrix(), normal)); // Transform normal to view space.
     tbnMatrix[0] = normalize(mul(input.normalMatrix(), tangent.xyz)); // Transform tangent to view space.
     tbnMatrix[1] = normalize(cross(tbnMatrix[0], tbnMatrix[2]) * sign(tangent.w)); 
-    tbnMatrix = mul(float3x3(ap.camera.viewInv), transpose(tbnMatrix));
+    tbnMatrix = mul(float3x3(ap.camera.viewInv), transpose(tbnMatrix)); // Note to self: transpose is needed here because matrix's are just handled differently in slang.
+
+    normal = normalize(mul(input.normalMatrix(), normal));
+    normal = normalize(mul(float3x3(ap.camera.viewInv), normal));
 
     // float3 vNormal = normalize(mul(input.normalMatrix(), normal)); // View space normal
     // float3 vTangent = normalize(mul(input.normalMatrix(), tangent.xyz)); // View space tangent
@@ -80,6 +83,7 @@ extern static const bool disableFog; // This is set in the pack.ts when creating
 struct FragmentOutput {
     float4 color : SV_Target0;
     float4 normals : SV_Target1;
+    float3 flatNormal : SV_Target2;
 }
 
 [[shader("fragment")]]
@@ -99,10 +103,10 @@ FragmentOutput fragmentMain(VertexOutput input) { // See the comment in gamma.sl
 
     labNormal.xy = labNormal.xy * 2.0 - 1.0;
     labNormal.z = sqrt(1.0 - dot(labNormal.xy, labNormal.xy));
-    
     labNormal.xyz = normalize(mul(tbnMatrix, labNormal.xyz));
+    labNormal = float4(labNormal.xyz, labAO);
 
-    float3 flatNormal = input.normal; // Model space
+    float3 flatNormal = input.normal;
 
     iris_discardIfNeeded(color); // This helper function is given by Aperture to auto-discard if needed in the object shader.
 
@@ -118,7 +122,9 @@ FragmentOutput fragmentMain(VertexOutput input) { // See the comment in gamma.sl
     
     FragmentOutput output;
     output.color = color;
-    output.normals = float4(labNormal.xyz, labAO);
+    // output.lightmap = lightmap;
+    output.normals = labNormal;
+    output.flatNormal = flatNormal;
 
     return output;
 }
