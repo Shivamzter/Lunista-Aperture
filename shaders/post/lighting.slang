@@ -34,15 +34,18 @@ float3 projectAndDivide(float4x4 projectionMatrix, float3 ndcPos) {
 [[shader("fragment")]]
 float4 applyLighting(float2 pos : SV_Position) : SV_Target0 { 
 
+    float2 uv = pos / ap.game.screenSize;
+
     float4 color = mainTexture[int2(pos)]; // acts as texelFetch would in GLSL. mainTexture.Sample is equivalent to `texture`.
     float4 normals = normalTexture[int2(pos)];
     normals.rgb = normals.rgb * 0.5 + 0.5;
     float3 flatNormal = flatNormalTex[int2(pos)].xyz;
-    flatNormal = flatNormal.rgb * 0.5 + 0.5;
+    flatNormal = flatNormal * 0.5 + 0.5;
+    flatNormal = flatNormal * 2.0 - 1.0;
 
-    float depth = mainDepthTex[int2(pos)].r;
-
-    float3 screenPos = float3(int2(pos), depth);
+    float depth = mainDepthTex.Sample(uv).r;
+    
+    float3 screenPos = float3(uv, depth);
     float3 ndcPos = screenPos * 2.0 - 1.0;
     float3 viewPos = projectAndDivide(ap.camera.projectionInv, ndcPos);
     float3 playerFeetPos = mul(ap.camera.viewInv, float4(viewPos, 1.0)).xyz;
@@ -50,7 +53,7 @@ float4 applyLighting(float2 pos : SV_Position) : SV_Target0 {
     float3 lightDir = mul(float3x3(ap.camera.viewInv), normalize(ap.celestial.position));
 
     float3 lightVector = normalize(ap.celestial.position);
-    float3 worldLightVector = mul(float3x3(ap.camera.viewInv), lightVector);
+    float3 worldLightVector = normalize(mul(float3x3(ap.camera.viewInv), lightVector));
 
     float labAO = normals.a;
     color.rgb *= labAO;

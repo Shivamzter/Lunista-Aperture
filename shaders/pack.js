@@ -10,6 +10,7 @@ function configureRenderer(renderer) {
   renderer.shadow.distance = 192;
   renderer.shadow.cascades = 4;
   renderer.shadow.entityCascadeCount = 1;
+  renderer.sunPathRotation = -35;
 }
 function configurePipeline(pipeline) {
   let mainTexture = pipeline.createTexture("mainTexture").width(screenWidth).height(screenHeight).format(Format.RGB16).build();

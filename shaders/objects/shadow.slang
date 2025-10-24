@@ -25,11 +25,6 @@ VertexOutput vertexMain(Vertex input) { // If we had any more vertex semantics w
 
     output.position = mul(input.projectionMatrix(), mul(input.viewMatrix(), modelPos));
     output.uv = input.uv();
-    output.color = input.color();
-
-    if (let overlayColor = input.overlayColor()) {
-        output.color = lerp(output.color, overlayColor, overlayColor.a);
-    }
 
     return output;
 }
@@ -38,9 +33,7 @@ VertexOutput vertexMain(Vertex input) { // If we had any more vertex semantics w
 [[shader("fragment")]]
 float4 fragmentMain(VertexOutput input) : SV_Target0 { // See the comment in gamma.slang about what targets are.
     // Aperture provides some built-in samplers for object shaders.
-    float4 color = albedoTex.Sample(input.uv) * input.color;
-
-    iris_discardIfNeeded(color); // This helper function is given by Aperture to auto-discard if needed in the object shader.
+    float4 color = iris_discardIfNeeded(albedoTex.Sample(input.uv)); // This helper function is given by Aperture to auto-discard if needed in the object shader.
 
     return color;
 }

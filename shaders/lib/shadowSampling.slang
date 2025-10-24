@@ -1,6 +1,6 @@
 import aperture;
 
-Sampler2DArrayShadow shadowMap;
+Sampler2DArrayShadow solidShadowMapFiltered;
 
 int calcCascade(float3 playerPos) {
     float3 shadowViewPos = mul((ap.celestial.view), float4(playerPos, 1.0)).xyz;
@@ -42,7 +42,7 @@ float3 getShadowScreenPos(float3 playerPos, float3 normal) {
 }
 
 float3 getShadow(float3 playerPos, float3 normal, float3 lightDir) {
-    
+
     if (dot(normal, lightDir) < 1e-5) {
         return float3(0.0);
     }
@@ -50,6 +50,6 @@ float3 getShadow(float3 playerPos, float3 normal, float3 lightDir) {
     int cascade = calcCascade(playerPos);
     float3 shadowScreenPos = getShadowScreenPos(playerPos, normal);
     
-    float csmShadow = shadowMap.SampleCmp(float3(shadowScreenPos.xy, cascade), shadowScreenPos.z);
+    float csmShadow = solidShadowMapFiltered.SampleCmp(float3(shadowScreenPos.xy, cascade), shadowScreenPos.z);
     return float3(csmShadow);
 }

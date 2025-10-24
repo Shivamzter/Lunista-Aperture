@@ -13,6 +13,8 @@ export function configureRenderer(renderer: RendererConfig): void {
   renderer.shadow.distance = 192;
   renderer.shadow.cascades = 4;
   renderer.shadow.entityCascadeCount = 1;
+
+  renderer.sunPathRotation = -35.0;
 }
 
 // This is where the shaders, buffers, and textures are configured.
