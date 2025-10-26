@@ -43,7 +43,7 @@ float3 getShadowScreenPos(float3 playerPos, float3 normal) {
 
 float3 getShadow(float3 playerPos, float3 normal, float3 lightDir) {
 
-    if (dot(normal, lightDir) < 1e-5) {
+    if (dot(normal, lightDir) < 1e-6) {
         return float3(0.0);
     }
 

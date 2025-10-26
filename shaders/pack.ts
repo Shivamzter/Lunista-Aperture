@@ -14,7 +14,9 @@ export function configureRenderer(renderer: RendererConfig): void {
   renderer.shadow.cascades = 4;
   renderer.shadow.entityCascadeCount = 1;
 
-  renderer.sunPathRotation = -35.0;
+  renderer.render.sun = false;
+
+  renderer.sunPathRotation = 30.0;
 }
 
 // This is where the shaders, buffers, and textures are configured.
@@ -30,6 +32,13 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .format(Format.RGB16)
     .build();
 
+  let lightmapTex = pipeline
+    .createTexture("lightmapTex")
+    .width(screenWidth)
+    .height(screenHeight)
+    .format(Format.RGBA8)
+    .build();
+
   let normalTexture = pipeline
     .createTexture("normalTexture")
     .width(screenWidth)
@@ -41,14 +50,13 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .createTexture("flatNormalTex")
     .width(screenWidth)
     .height(screenHeight)
-    .format(Format.RGBA8)
     .build();
 
   let finalTexture = pipeline
     .createTexture("finalTexture")
     .width(screenWidth)
     .height(screenHeight)
-    .format(Format.RGBA8)
+    .format(Format.RGB16)
     .build();
 
   // First, we need to define object shaders, and their source "modules".
@@ -60,8 +68,10 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .location("objects/basic")
     .exportBool("disableFog", true)
     .target(0, mainTexture)
-    .target(1, normalTexture)
-    .target(2, flatNormalTex)
+    .target(1, lightmapTex)
+    .target(2, normalTexture)
+    .target(3, flatNormalTex)
+    .blendOff(3)
     .compile();
 
   pipeline
@@ -82,6 +92,12 @@ export function configurePipeline(pipeline: PipelineConfig): void {
   let postRender = pipeline.forStage(Stage.POST_RENDER);
 
   // A basic composite. Requires both a module and entrypoint.
+  postRender
+    .createComposite("clouds")
+    .location("post/clouds", "applyClouds")
+    .target(0, mainTexture)
+    .compile();
+
   postRender
     .createComposite("lighting")
     .location("post/lighting", "applyLighting")

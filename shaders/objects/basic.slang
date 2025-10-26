@@ -82,8 +82,10 @@ extern static const bool disableFog; // This is set in the pack.ts when creating
 
 struct FragmentOutput {
     float4 color : SV_Target0;
-    float4 normals : SV_Target1;
-    float3 flatNormal : SV_Target2;
+    float4 lightmap : SV_Target1;
+    float4 normals : SV_Target2;
+    float4 flatNormal : SV_Target3;
+    // float4 labSpecular : SV_Target4;
 }
 
 [[shader("fragment")]]
@@ -108,6 +110,8 @@ FragmentOutput fragmentMain(VertexOutput input) { // See the comment in gamma.sl
 
     float3 flatNormal = input.normal;
 
+    // float4 labSpecular = specularTex.Sample(input.uv);
+
     iris_discardIfNeeded(color); // This helper function is given by Aperture to auto-discard if needed in the object shader.
 
     // Apply fog if needed
@@ -122,9 +126,10 @@ FragmentOutput fragmentMain(VertexOutput input) { // See the comment in gamma.sl
     
     FragmentOutput output;
     output.color = color;
-    // output.lightmap = lightmap;
-    output.normals = labNormal;
-    output.flatNormal = flatNormal;
+    output.lightmap = float4(float3(input.light, 1.0), 1.0);
+    output.normals = float4(labNormal.rgb * 0.5 + 0.5, 1.0);
+    output.flatNormal = float4(flatNormal * 0.5 + 0.5, input.ao);
+    // output.labSpecular = labSpecular;
 
     return output;
 }
