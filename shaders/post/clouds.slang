@@ -3,7 +3,6 @@ import aperture;
 
 Sampler2D mainTexture;
 // Sampler2D flatNormalTex;
-
 Sampler2D mainDepthTex;
 
 // This is a simple way to write to one texture. To write to more, return a struct with multiple SV_TargetN members, like the one below.

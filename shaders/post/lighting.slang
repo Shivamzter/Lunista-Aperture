@@ -30,8 +30,8 @@ static float3 planetLight = isNight ? moonLightColor : sunLightColor;
 static const float STEP_SIZE = 0.05;
 static const int NUM_STEPS = 150;
 
-float3 projectAndDivide(float4x4 projectionMatrix, float3 ndcPos) {
-    float4 homPos = mul(projectionMatrix, float4(ndcPos, 1.0));
+float3 projectAndDivide(float4x4 projectionMatrix, float3 position) {
+    float4 homPos = mul(projectionMatrix, float4(position, 1.0));
     return homPos.xyz / homPos.w;
 }
 
@@ -55,19 +55,27 @@ float4 applyLighting(float2 pos : SV_Position) : SV_Target0 {
     float3 playerFeetPos = mul(ap.camera.viewInv, float4(viewPos, 1.0)).xyz;
     float3 playerEyePos = mul(float3x3(ap.camera.viewInv), viewPos);
 
-    float3 lightPos = mul(float3x3(ap.camera.viewInv), normalize(ap.celestial.position));
+    float3 worldPos = playerFeetPos + ap.camera.position;
 
-    float3 rayOrigin = normalize(playerEyePos);
+    float3 rayOrigin = ap.camera.position;
+    float3 rayDir = normalize(worldPos - rayOrigin);
+
+    float3 lightPos = mul(ap.camera.viewInv, float4(normalize(ap.celestial.position), 1.0)).xyz;
+    lightPos = lightPos + ap.camera.position;
+    
+    float3 lightDir = normalize(lightPos - rayOrigin);
+
+    float3 shadow = getShadow(playerFeetPos, flatNormal.rgb, lightPos);
 
     float fogAmount = 0.0;
-    float lightIntensity = 2.0;
+    float lightIntensity = 1.0;
     float t = STEP_SIZE;
 
     for (int i = 0; i < NUM_STEPS; i++) {
-        float3 samplePos = rayOrigin * t;
+        float3 samplePos = rayOrigin + rayDir * t;
 
         float distanceToLight = length(samplePos - lightPos);
-        float attenuation = (1.0 / distanceToLight);
+        float attenuation = 1.0 / distanceToLight;
 
         fogAmount += attenuation * lightIntensity;
 
@@ -76,21 +84,22 @@ float4 applyLighting(float2 pos : SV_Position) : SV_Target0 {
     
     fogAmount /= float(NUM_STEPS);
 
-    float3 volumetricLight = planetLight * fogAmount;
+    float3 volumetricLight = fogAmount;
 
     float labAO = normals.a;
     float vanillaAO = flatNormal.a;
 
-    float3 shadow = getShadow(playerFeetPos, flatNormal.rgb, lightPos);
-
-    float3 dirLight = volumetricLight * clamp(dot(lightPos, normals.rgb), 0.0, 1.0) * shadow;
+    // float3 dirLight = clamp(dot(lightPos, normals.rgb), 0.0, 1.0) * shadow;
+    color.rgb *= volumetricLight;
 
     float3 blocklight = lightmap.r * blocklightColor;
     float3 skylight = lightmap.g * skylightColor;
 
+    color.rgb *= shadow;
+
     float3 indirectLight = (blocklightColor + skylight + ambientLight) * labAO * vanillaAO;
 
-    color.rgb *= indirectLight + dirLight;
+    // color.rgb *= indirectLight + dirLight;
 
     return float4(color.rgb, 1.0);
 }

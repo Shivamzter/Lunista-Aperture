@@ -66,7 +66,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
   pipeline
     .createObjectShader("basic", Usage.BASIC)
     .location("objects/basic")
-    .exportBool("disableFog", true)
+    .exportBool("disableFog", false)
     .target(0, mainTexture)
     .target(1, lightmapTex)
     .target(2, normalTexture)
@@ -84,7 +84,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .createObjectShader("sky", Usage.SKY_TEXTURES)
     .location("objects/basic")
     .target(0, mainTexture)
-    .exportBool("disableFog", true)
+    .exportBool("disableFog", false)
     .compile();
 
   // The following is a command list; the main way to do post processing and compute.
