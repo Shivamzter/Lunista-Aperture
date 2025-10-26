@@ -57,13 +57,13 @@ float4 applyLighting(float2 pos : SV_Position) : SV_Target0 {
 
     float3 worldPos = playerFeetPos + ap.camera.position;
 
+    float3 eyeCameraPos = ap.camera.position + ap.camera.viewInv[3].xyz; 
+
     float3 rayOrigin = ap.camera.position;
     float3 rayDir = normalize(worldPos - rayOrigin);
 
-    float3 lightPos = mul(ap.camera.viewInv, float4(normalize(ap.celestial.position), 1.0)).xyz;
-    lightPos = lightPos + ap.camera.position;
-    
-    float3 lightDir = normalize(lightPos - rayOrigin);
+    float3 lightPos = mul(float3x3(ap.camera.viewInv), normalize(ap.celestial.position));
+    lightPos += eyeCameraPos;
 
     float3 shadow = getShadow(playerFeetPos, flatNormal.rgb, lightPos);
 
@@ -89,17 +89,17 @@ float4 applyLighting(float2 pos : SV_Position) : SV_Target0 {
     float labAO = normals.a;
     float vanillaAO = flatNormal.a;
 
-    // float3 dirLight = clamp(dot(lightPos, normals.rgb), 0.0, 1.0) * shadow;
-    color.rgb *= volumetricLight;
+    float3 dirLight = volumetricLight * clamp(dot(lightPos, normals.rgb), 0.0, 1.0) * shadow;
+    // color.rgb *= volumetricLight;
 
     float3 blocklight = lightmap.r * blocklightColor;
     float3 skylight = lightmap.g * skylightColor;
 
-    color.rgb *= shadow;
+    // color.rgb *= shadow;
 
     float3 indirectLight = (blocklightColor + skylight + ambientLight) * labAO * vanillaAO;
 
-    // color.rgb *= indirectLight + dirLight;
+    color.rgb *= indirectLight + dirLight;
 
     return float4(color.rgb, 1.0);
 }
