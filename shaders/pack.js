@@ -18,8 +18,9 @@ function configurePipeline(pipeline) {
   let lightmapTex = pipeline.createTexture("lightmapTex").width(screenWidth).height(screenHeight).format(Format.RGBA8).build();
   let normalTexture = pipeline.createTexture("normalTexture").width(screenWidth).height(screenHeight).format(Format.RGBA8).build();
   let flatNormalTex = pipeline.createTexture("flatNormalTex").width(screenWidth).height(screenHeight).build();
+  let labSpecularTex = pipeline.createTexture("labSpecularTex").width(screenWidth).height(screenHeight).build();
   let finalTexture = pipeline.createTexture("finalTexture").width(screenWidth).height(screenHeight).format(Format.RGB16).build();
-  pipeline.createObjectShader("basic", Usage.BASIC).location("objects/basic").exportBool("disableFog", false).target(0, mainTexture).target(1, lightmapTex).target(2, normalTexture).target(3, flatNormalTex).blendOff(3).compile();
+  pipeline.createObjectShader("basic", Usage.BASIC).location("objects/basic").exportBool("disableFog", false).target(0, mainTexture).target(1, lightmapTex).target(2, normalTexture).target(3, flatNormalTex).target(4, labSpecularTex).blendOff(3).compile();
   pipeline.createObjectShader("shadow", Usage.SHADOW).location("objects/shadow").compile();
   pipeline.createObjectShader("sky", Usage.SKY_TEXTURES).location("objects/basic").target(0, mainTexture).exportBool("disableFog", false).compile();
   let postRender = pipeline.forStage(Stage.POST_RENDER);

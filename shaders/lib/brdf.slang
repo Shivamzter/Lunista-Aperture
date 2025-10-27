@@ -1,0 +1,182 @@
+import aperture;
+
+static const float PI = 3.14159265359;
+
+// float DistributionGGX(float3 N, float3 H, float roughness)
+// {
+//   float a = roughness * roughness;
+//   float a2 = a * a;
+//   float num = a2;
+
+//   float NoH  = max(dot(N, H), 0.0);
+//   float NoH2 = NoH*NoH;
+	
+//   float denom = (NoH2 * (a2 - 1.0) + 1.0);
+//   denom = PI * denom * denom;
+	
+//   return num / denom;
+// }
+
+// // float3 fresnelSchlick(float cosTheta, float3 F0)
+// // {
+// //     return F0 + (float3(1.0) - F0) * pow(1.0 - cosTheta, 5.0);
+// // }  
+
+// float GeometryShclickGGX(float NdotX, float roughness)
+// {
+//     float r = (roughness + 1.0);
+//     float k = (r*r) / 8.0;
+
+//     float num = NdotX;
+//     float denom = NdotX * (1.0 - k) + k;
+	
+//     return num / denom;
+// }
+
+// float gGGX(float NoX, float roughness) {
+//   float num = 2.0 * NoX;
+  
+//   float a = roughness * roughness;
+//   float a2 = a * a;
+
+// //   float NoV = dot(N, V);
+//   float NoX2 = NoX * NoX;
+
+//   float denom = max(NoX, 1e-6) + sqrt(a2 + (1.0 - a2) * NoX2);
+
+//   return num / denom;
+// }
+
+// float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
+// {
+//   float NdotV = max(dot(N, V), 1e-6);
+//   float NdotL = max(dot(N, L), 1e-6);
+//   float ggx2  = gGGX(NdotV, roughness);
+//   float ggx1  = gGGX(NdotL, roughness);
+
+//   return ggx1 * ggx2;
+// }
+
+// float3 brdfMicrofacet(float3 lightColor, float3 N, float3 L, float3 V, float roughness, float3 labF0, float3 albedo, float metallic) {
+
+//   float3 Lo = float3(0.0);
+  
+//   //calculate light radiance
+//   float dist = length(L);
+//   float attenuation = 1.0 / (dist * dist);
+//   float3 radiance = lightColor * attenuation; 
+
+//   float3 H = normalize(V + L);
+
+//   float NoV = max(dot(N, V), 0.0);
+//   float NoL = clamp(dot(N, L), 0.0, 1.0);
+//   float HoV = max(dot(H, V), 0.0);
+
+//   float alpha = roughness * roughness;
+
+//   float D = DistributionGGX(N, H, roughness);
+//   float3 F = fresnelSchlick(HoV, labF0);
+//   float G = GeometrySmith(N, V, L, roughness);
+
+//   float3 spec = (D * F * G) / (4.0 * NoL * NoV + 0.0001);
+
+//   float3 kS = F;
+//   float3 kD = float3(1.0) - kS;
+//   kD *= 1.0 - metallic;
+
+//   Lo += (kD * albedo / PI + spec) * radiance * NoL;
+
+//   return Lo;
+// }
+
+float D_GGX(float NoH, float alpha) {
+
+    float alpha2 = pow(alpha, 2.0);
+    float NoH2 = pow(NoH, 2.0);
+
+    float num = alpha2;
+    float denom = PI * (pow(NoH2 * (alpha2 - 1.0) + 1.0, 2.0));
+    denom = max(denom, 1e-6); // Prevent division by zero
+
+    return num / denom;
+
+}
+
+// float G1_GGX_Schlick(float NoV, float roughness) {
+//     float alpha = roughness * roughness;
+//     float k = alpha / 2.0;
+//     return max(NoV, 0.0001) / (max(NoV, 0.0001) * (1.0 - k) + k);
+// }
+
+float G1_GGX(float NoVL, float alpha) {
+
+    float alpha2 = pow(alpha, 2.0);
+
+    float NoX = max(NoVL, 1e-6);
+    float NoX2 = pow(NoX, 2.0);
+
+    float num = 2.0 * NoX;
+    float denom = NoX + sqrt(alpha2 + (1.0 - alpha2) * NoX2);
+
+    return num / denom;
+}
+
+float G_Smith(float NoV, float NoL, float alpha) {
+    return G1_GGX(NoV, alpha) * G1_GGX(NoL, alpha);
+}
+
+float3 fresnelSchlick(float cosTheta, float3 F0)
+{
+    return F0 + (float3(1.0) - F0) * (pow(1.0 - cosTheta, 5.0));
+}
+
+float3 labPBR_HCM_F0(int conductor) {
+    if (conductor == 230) return float3(0.560, 0.570, 0.580); // Iron
+    if (conductor == 231) return float3(0.981, 0.781, 0.497); // Gold
+    if (conductor == 232) return float3(0.700, 0.700, 0.700); // Aluminum
+    if (conductor == 234) return float3(0.955, 0.638, 0.538); // Copper
+    return float3(0.50, 0.50, 0.50);
+}
+
+float3 microfacetBRDF(float3 L, float3 V, float3 N, float labF0_HCM, float roughness, float3 albedo, float3 directLight) {
+
+  float3 H = normalize(V + L);
+
+  float NoV = max(dot(N, V), 0.0);
+  float NoL = max(dot(N, L), 0.0);
+  float NoH = max(dot(N, H), 0.0);
+  float VoH = max(dot(V, H), 0.0);
+
+  float3 f0;
+  float metallic;
+
+  int labG = int(labF0_HCM * 255.0 + 0.5);
+
+  if (labG >= 230) {
+    metallic = 1.0;
+    f0 = labPBR_HCM_F0(labG);
+
+  } else {
+    metallic = 0.0;
+    float reflectence = labG / 229.0;
+    f0 = float3(0.16 * (reflectence * reflectence));
+  }
+
+  float alpha = roughness;
+
+  float3 F = fresnelSchlick(VoH, f0);
+  float D = D_GGX(NoH, alpha);
+  float G = G_Smith(NoV, NoL, alpha);
+
+  float3 spec = (D * F * G) / (4.0 * max(NoL, 0.0) * max(NoV, 0.0) + 1e-6);
+
+  float3 kS = F;
+
+  float3 kD = (1.0 - kS) * (1.0 - metallic);
+
+  float3 diff =  kD * (albedo / PI);
+
+  float3 result = (diff + spec) * directLight * (NoL);
+
+  return result;
+}

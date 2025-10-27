@@ -1,10 +1,12 @@
 import aperture;
 import lib.shadowSampling;
+import lib.brdf;
 
 Sampler2D mainTexture;
 Sampler2D lightmapTex;
 Sampler2D normalTexture;
 Sampler2D flatNormalTex;
+Sampler2D labSpecularTex;
 
 Sampler2D mainDepthTex;
 
@@ -25,10 +27,16 @@ static const float3 ambientLight = isNight ? float3(0.01) : float3(0.15);
 
 static const float3 sunLightColor = float3(1.0, 0.98, 0.9);
 static const float3 moonLightColor = float3(0.1, 0.1, 0.3);
-static float3 planetLight = isNight ? moonLightColor : sunLightColor;
+static float3 planetLightColor = isNight ? moonLightColor : sunLightColor;
 
 static const float STEP_SIZE = 0.05;
 static const int NUM_STEPS = 150;
+
+static const int NUM_SAMPLES = 150;
+static const float DENSITY = 1.0;
+static const float WEIGHT = 0.01;
+static const float DECAY = 1.0;
+static const float EXPOSURE = 10.0;
 
 float3 projectAndDivide(float4x4 projectionMatrix, float3 position) {
     float4 homPos = mul(projectionMatrix, float4(position, 1.0));
@@ -46,6 +54,7 @@ float4 applyLighting(float2 pos : SV_Position) : SV_Target0 {
     normals= normalize((normals - 0.5) * 2.0);
     float4 flatNormal = flatNormalTex[int2(pos)];
     flatNormal.rgb = normalize((flatNormal.rgb - 0.5) * 2.0);
+    float4 labSpecular = labSpecularTex.Sample(uv);
 
     float depth = mainDepthTex.Sample(uv).r;
     
@@ -57,13 +66,17 @@ float4 applyLighting(float2 pos : SV_Position) : SV_Target0 {
 
     float3 worldPos = playerFeetPos + ap.camera.position;
 
-    float3 eyeCameraPos = ap.camera.position + ap.camera.viewInv[3].xyz; 
+    float3 eyeCameraPos = ap.camera.position + ap.camera.viewInv[3].xyz;
+
+    float3 viewDir = normalize(ap.camera.position - worldPos);
 
     float3 rayOrigin = ap.camera.position;
     float3 rayDir = normalize(worldPos - rayOrigin);
 
     float3 lightPos = mul(float3x3(ap.camera.viewInv), normalize(ap.celestial.position));
     lightPos += eyeCameraPos;
+
+    float3 lightDir = normalize(lightPos - worldPos);
 
     float3 shadow = getShadow(playerFeetPos, flatNormal.rgb, lightPos);
 
@@ -84,22 +97,66 @@ float4 applyLighting(float2 pos : SV_Position) : SV_Target0 {
     
     fogAmount /= float(NUM_STEPS);
 
-    float3 volumetricLight = fogAmount;
+    float3 volumetricLight = planetLightColor * fogAmount;
+
+    // UV
+    float2 sampleCoord = uv;
+    // Taking planet position to screen space
+    float3 planetScreenPos = projectAndDivide(ap.camera.projection, normalize(ap.celestial.position)) * 0.5 + 0.5;
+
+    // Godrays
+    float2 deltaTexCoord = sampleCoord - planetScreenPos.xy;
+    deltaTexCoord *= 1.0 / NUM_SAMPLES * DENSITY;
+
+  // float3 colorSample = texture(colortex0, sampleCoord).rgb;
+
+  float decay = 1.0;
+
+  float3 godrays = float3(0.0);
+
+  for (int i = 0; i < NUM_SAMPLES; i++) {
+    sampleCoord -= deltaTexCoord;
+
+    float edgeDistance = min(min(sampleCoord.x, 1.0 - sampleCoord.x), min(sampleCoord.y, 1.0 - sampleCoord.y));
+    float fadeWidth = 0.25;
+    float godRayFade = smoothstep(0.0, fadeWidth, edgeDistance);
+
+    float currentDepth = mainDepthTex.Sample(sampleCoord).r;
+    float3 currentSample = currentDepth == 1.0 ? 1.0 : 0.0;
+
+    currentSample *= decay * WEIGHT * godRayFade;
+    godrays += currentSample;
+    decay *= DECAY;
+    }
+
+    godrays /= (0.5 * float(NUM_SAMPLES));
+    godrays *= EXPOSURE;
+
+    color.rgb += godrays;
 
     float labAO = normals.a;
     float vanillaAO = flatNormal.a;
 
-    float3 dirLight = volumetricLight * clamp(dot(lightPos, normals.rgb), 0.0, 1.0) * shadow;
-    // color.rgb *= volumetricLight;
+    // color.rgb *= shadow;
 
     float3 blocklight = lightmap.r * blocklightColor;
     float3 skylight = lightmap.g * skylightColor;
 
     // color.rgb *= shadow;
 
+    // float labRoughness = labSpecular.r;
+    // labRoughness = pow(1.0 - labRoughness, 2.0);
+    // labRoughness = clamp(labRoughness, 0.001, 1.0);
+
+    // float labSpecG = labSpecular.g;
+
+    // float3 directLight = microfacetBRDF(-lightDir, viewDir, normals.rgb, labSpecG, labRoughness, color.rgb, volumetricLight) * shadow;
+
+    float3 directLight = volumetricLight * clamp(dot(lightPos, normals.rgb), 0.0, 1.0) * shadow;
+
     float3 indirectLight = (blocklightColor + skylight + ambientLight) * labAO * vanillaAO;
 
-    color.rgb *= indirectLight + dirLight;
+    color.rgb *= indirectLight + directLight;
 
-    return float4(color.rgb, 1.0);
+    return float4(normals.rgb, 1.0);
 }
