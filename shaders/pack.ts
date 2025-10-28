@@ -29,7 +29,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .createTexture("mainTexture")
     .width(screenWidth)
     .height(screenHeight)
-    .format(Format.RGB16)
+    .format(Format.RGB16F)
     .build();
 
   let lightmapTex = pipeline
@@ -72,7 +72,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
   pipeline
     .createObjectShader("basic", Usage.BASIC)
     .location("objects/basic")
-    .exportBool("disableFog", false)
+    .exportBool("disableFog", true)
     .target(0, mainTexture)
     .target(1, lightmapTex)
     .target(2, normalTexture)
@@ -91,7 +91,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .createObjectShader("sky", Usage.SKY_TEXTURES)
     .location("objects/basic")
     .target(0, mainTexture)
-    .exportBool("disableFog", false)
+    .exportBool("disableFog", true)
     .compile();
 
   // The following is a command list; the main way to do post processing and compute.
@@ -99,11 +99,6 @@ export function configurePipeline(pipeline: PipelineConfig): void {
   let postRender = pipeline.forStage(Stage.POST_RENDER);
 
   // A basic composite. Requires both a module and entrypoint.
-  postRender
-    .createComposite("clouds")
-    .location("post/clouds", "applyClouds")
-    .target(0, mainTexture)
-    .compile();
 
   postRender
     .createComposite("lighting")

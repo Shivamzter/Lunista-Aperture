@@ -95,7 +95,7 @@ FragmentOutput fragmentMain(VertexOutput input) { // See the comment in gamma.sl
     
 
     color.rgb *= lightmap.Sample(input.light).rgb;
-    color.rgb = pow(color.rgb, float3(2.2)); // Simple gamma correction.
+    color.rgb = pow(color.rgb, float3(2.2));
 
     float3x3 tbnMatrix = input.tbnMatrix;
 

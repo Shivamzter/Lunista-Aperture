@@ -66,6 +66,72 @@ float fractalNoise3D(in float3 p) {
 
     return total;
 }
+// float HenyeyGreenstein(float g, float mu) {
+//   float gg = g * g;
+// 	return (1.0 / (4.0 * PI))  * ((1.0 - gg) / pow(1.0 + gg - 2.0 * g * mu, 1.5));
+// }
+
+// float lightmarch(float3 position, float3 rayDirection, float3 lightDir) {
+//     float3 lightDirection = lightDir;
+//     float totalDensity = 0.0;
+//     float marchSize = 0.03;
+
+//     for (int step = 0; step < MAX_STEPS_LIGHTS; step++) {
+//         position += lightDirection * marchSize * float(step);
+
+//         float lightSample = getCloud(position);
+//         totalDensity += lightSample;
+//     }
+
+//     float transmittance = BeersLaw(totalDensity, ABSORPTION_COEFFICIENT);
+//     return transmittance;
+// }
+
+// float raymarch(float3 rayOrigin, float3 rayDirection, float3 lightDir) {
+//     float depth = 0.0;
+//     depth += MARCH_SIZE;
+//     float3 p = rayOrigin + depth * rayDirection;
+//     float3 lightDirection = lightDir;
+
+//     float totalTransmittance = 1.0;
+//     float lightEnergy = 0.0;
+
+//     float phase = HenyeyGreenstein(SCATTERING_ANISO, dot(rayDirection, lightDirection));
+
+//     for (int i = 0; i < MAX_STEPS; i++) {
+
+//         float density = getCloud(p);
+
+//         if (density > 0.0) {
+//             float lightTransmittence = lightmarch(p, rayDirection, lightDirection);
+//             float luminance = 0.025 + density * phase;
+
+//             totalTransmittance *= lightTransmittence;
+//             lightEnergy += totalTransmittance * luminance;
+//         }
+
+//         depth += MARCH_SIZE;
+//         p = rayOrigin + depth * rayDirection;
+//     }
+
+//     return clamp(lightEnergy, 0.0, 1.0);
+// }
+
+// float lightmarch(float3 position, float3 planetDirection) {
+//     float3 lightDirection = planetDirection;
+//     float totalDensity = 0.0;
+//     float merchSize = 0.03;
+
+//     for (int ss = 0; ss < MAX_STEPS_LIGHTS; ss++) {
+//         position += lightDirection * merchSize * float(ss);
+        
+//         float lightSample = getCloud(position);
+//         totalDensity += lightSample;
+//     }
+
+//     float transmittance = BeersLaw(totalDensity, ABSORPTION_COEFFICIENT);
+//     return transmittance;
+// }
 
 [[shader("fragment")]]
 float4 applyClouds(float2 pos : SV_Position) : SV_Target0 { 
