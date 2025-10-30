@@ -127,7 +127,7 @@ FragmentOutput fragmentMain(VertexOutput input) { // See the comment in gamma.sl
     FragmentOutput output;
     output.color = color;
     output.lightmap = float4(float3(input.light, 1.0), 1.0);
-    output.normals = float4(labNormal.rgb, 1.0) * 0.5 + 0.5;
+    output.normals = float4(labNormal.rgb * 0.5 + 0.5, labAO);
     output.flatNormal = float4(flatNormal * 0.5 + 0.5, input.ao);
     output.labSpecular = labSpecular;
 
