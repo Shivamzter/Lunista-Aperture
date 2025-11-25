@@ -13,6 +13,8 @@ struct VertexOutput {
     float4 color;
     float2 light;
     float distance;
+    float3 normal;
+    float ao;
 };
 
 [[shader("vertex")]]
@@ -25,11 +27,25 @@ VertexOutput vertexMain(Vertex input) { // If we had any more vertex semantics w
     // Basic transformations.
     float4 modelPos = input.pos(); // These functions are capable of running expensive calculations; better to cache when possible.
 
+    float3 normal = input.normal().orElse(float3(1.0, 1.0, 1.0)); // Model space
+    float4 tangent = input.tangent().orElse(float4(1.0, 1.0, 1.0, 1.0)); // Model space
+    
+    float3x3 tbnMatrix;
+    tbnMatrix[2] = normalize(mul(input.normalMatrix(), normal)); // Transform normal to view space.
+    tbnMatrix[0] = normalize(mul(input.normalMatrix(), tangent.xyz)); // Transform tangent to view space.
+    tbnMatrix[1] = normalize(cross(tbnMatrix[0], tbnMatrix[2]) * sign(tangent.w)); 
+    tbnMatrix = mul(float3x3(ap.camera.viewInv), transpose(tbnMatrix)); // Note to self: transpose is needed here because matrix's are just handled differently in slang.
+
+    normal = normalize(mul(input.normalMatrix(), normal));
+    normal = normalize(mul(float3x3(ap.camera.viewInv), normal));
+
     output.position = mul(input.projectionMatrix(), mul(input.viewMatrix(), modelPos));
     output.uv = input.uv();
     output.color = input.color();
     output.light = input.light();
     output.distance = length(modelPos);
+    output.normal = normal;
+    output.ao = input.ao();
 
     // There is... one more thing we should deal with. When an entity gets hit and turns red, this is known as an "overlay color"; and that is a manual job.
     // Overlay color is one of the mentioned Optional semantics; we can check if it exists and apply it if so.
@@ -46,14 +62,18 @@ VertexOutput vertexMain(Vertex input) { // If we had any more vertex semantics w
 
 extern static const bool disableFog; // This is set in the pack.ts when creating the object shader. A default value could be given here if desired.
 
+struct FragmentOutput {
+    float4 color : SV_Target0;
+    float4 lightmap : SV_Target1;
+    float4 encodedNormal : SV_Target2;
+}
+
 // The fragment entrypoint takes the output of the vertex shader as input.
 [[shader("fragment")]]
-float4 fragmentMain(VertexOutput input) : SV_Target0 { // See the comment in gamma.slang about what targets are.
+FragmentOutput fragmentMain(VertexOutput input) { // See the comment in gamma.slang about what targets are.
     // Aperture provides some built-in samplers for object shaders.
     float4 color = albedoTex.Sample(input.uv) * input.color;
     color.rgb *= lightmap.Sample(input.light).rgb;
-
-    color.rgb = pow(color.rgb, float3(2.2));
 
     iris_discardIfNeeded(color); // This helper function is given by Aperture to auto-discard if needed in the object shader.
 
@@ -66,6 +86,13 @@ float4 fragmentMain(VertexOutput input) : SV_Target0 { // See the comment in gam
 
         color = lerp(color, ap.world.fogColor, clamp(mixValue, 0.0, 1.0));
     }
+    
+    color.rgb = pow(color.rgb, float3(2.2));
 
-    return color;
+    FragmentOutput output;
+    output.color = color;
+    output.lightmap = float4(input.light, 0.0, 1.0);
+    output.encodedNormal = float4(input.normal * 0.5 + 0.5, input.ao);
+
+    return output;
 }
