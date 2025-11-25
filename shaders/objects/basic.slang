@@ -15,6 +15,7 @@ struct VertexOutput {
     float distance;
     float3 normal;
     float ao;
+    float3x3 tbnMatrix;
 };
 
 [[shader("vertex")]]
@@ -46,6 +47,7 @@ VertexOutput vertexMain(Vertex input) { // If we had any more vertex semantics w
     output.distance = length(modelPos);
     output.normal = normal;
     output.ao = input.ao();
+    output.tbnMatrix = tbnMatrix;
 
     // There is... one more thing we should deal with. When an entity gets hit and turns red, this is known as an "overlay color"; and that is a manual job.
     // Overlay color is one of the mentioned Optional semantics; we can check if it exists and apply it if so.
@@ -66,6 +68,7 @@ struct FragmentOutput {
     float4 color : SV_Target0;
     float4 lightmap : SV_Target1;
     float4 encodedNormal : SV_Target2;
+    float4 labNormal : SV_Target3;
 }
 
 // The fragment entrypoint takes the output of the vertex shader as input.
@@ -89,10 +92,19 @@ FragmentOutput fragmentMain(VertexOutput input) { // See the comment in gamma.sl
     
     color.rgb = pow(color.rgb, float3(2.2));
 
+    float4 labNormal = normalTex.Sample(input.uv);
+    labNormal.xy = labNormal.xy * 2.0 - 1.0;
+
+    float labAO = labNormal.b;
+    
+    labNormal.z = sqrt(1.0 - dot(labNormal.xy, labNormal.xy));
+    labNormal.xyz = normalize(mul(input.tbnMatrix, labNormal.xyz));
+
     FragmentOutput output;
     output.color = color;
     output.lightmap = float4(input.light, 0.0, 1.0);
     output.encodedNormal = float4(input.normal * 0.5 + 0.5, input.ao);
+    output.labNormal = float4(labNormal.xyz * 0.5 + 0.5, labAO);
 
     return output;
 }

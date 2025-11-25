@@ -4,6 +4,7 @@ import lib.shadowSampling;
 Sampler2D mainTex;
 Sampler2D lightmapTex;
 Sampler2D encodedNormalTex;
+Sampler2D labNormalTex;
 
 Sampler2D mainDepthTex;
 
@@ -33,16 +34,23 @@ float4 applyLighting(float2 pos : SV_Position) : SV_Target0 {
 
     float depth = mainDepthTex.Sample(texcoord).r;
 
-    // if (depth >= 1.0) {
-    //     discard;
-    // }
+    if (depth >= 1.0) {
+        discard;
+    }
 
-    float4 color = mainTex[int2(pos)]; // acts as texelFetch would in GLSL. mainTexture.Sample is equivalent to `texture`.
+    float4 color = mainTex[int2(pos)];
 
     float2 lightmap = lightmapTex[int2(pos)].rg;
 
     float4 encodedNormal = encodedNormalTex[int2(pos)];
-    encodedNormal.rgb = normalize((encodedNormal.rgb - 0.5) * 2.0); // Player eye space
+    encodedNormal.rgb = normalize((encodedNormal.rgb - 0.5) * 2.0);
+
+    float vanillaAO = encodedNormal.a;
+
+    float4 labNormal = labNormalTex[int2(pos)];
+    labNormal.xyz = normalize((labNormal.xyz - 0.5) * 2.0);
+
+    float labAO = labNormal.a;
 
     float3 screenPos = float3(texcoord, depth);
     float3 ndcPos = screenPos * 2.0 - 1.0;
@@ -50,22 +58,20 @@ float4 applyLighting(float2 pos : SV_Position) : SV_Target0 {
     float3 feetPlayerPos = mul(ap.camera.viewInv, float4(viewPos, 1.0)).xyz;
     float3 eyePlayerPos = mul(float3x3(ap.camera.viewInv), viewPos);
 
-    float vanillaAO = encodedNormal.a;
-
     float3 blocklight = lightmap.r * blocklightColor;
     float3 skylight = lightmap.g * skylightColor;
     float3 ambient = ambientStrength;
 
     float3 lightPos = normalize(ap.celestial.position);
-    float3 lightDir = mul(float3x3(ap.camera.viewInv), lightPos); // Player eye space
+    float3 lightDir = mul(float3x3(ap.camera.viewInv), lightPos);
 
     float3 viewDir = normalize(-eyePlayerPos);
     float3 halfwayDir = normalize(lightDir + viewDir);
 
-    float diff = max(dot(encodedNormal.rgb, lightDir), 0.0);
+    float diff = max(dot(labNormal.rgb, lightDir), 0.0);
     float3 diffuse = diff * lightColor;
 
-    float spec = pow(max(dot(encodedNormal.rgb, halfwayDir), 0.0), 32.0);
+    float spec = pow(max(dot(labNormal.rgb, halfwayDir), 0.0), 32.0);
     float3 specular = lightColor * spec;
 
     float3 shadow = getShadow(feetPlayerPos, encodedNormal.rgb);

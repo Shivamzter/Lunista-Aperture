@@ -48,6 +48,13 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .format(Format.RGBA8)
     .build();
 
+  let labNormalTex = pipeline
+    .createTexture("labNormalTex")
+    .width(screenWidth)
+    .height(screenHeight)
+    .format(Format.RGBA8)
+    .build();
+
   let finalTex = pipeline
     .createTexture("finalTex")
     .width(screenWidth)
@@ -75,7 +82,9 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .target(0, mainTex)
     .target(1, lightmapTex)
     .target(2, encodedNormalTex)
+    .target(3, labNormalTex)
     .blendOff(2)
+    .blendOff(3)
     .compile();
 
   pipeline
