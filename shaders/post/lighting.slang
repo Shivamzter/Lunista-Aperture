@@ -17,7 +17,7 @@ struct Output {
 
 static const float3 blocklightColor = float3(1.0, 0.5, 0.08);
 static const float3 skylightColor = float3(0.05, 0.15, 0.3);
-static const float3 sunlightColor = float3(1.0);
+static const float3 lightColor = float3(1.0);
 static const float3 ambientStrength = float3(0.1);
 static const float specularStrength = 2.0;
 
@@ -33,9 +33,9 @@ float4 applyLighting(float2 pos : SV_Position) : SV_Target0 {
 
     float depth = mainDepthTex.Sample(texcoord).r;
 
-    if (depth >= 1.0) {
-        discard;
-    }
+    // if (depth >= 1.0) {
+    //     discard;
+    // }
 
     float4 color = mainTex[int2(pos)]; // acts as texelFetch would in GLSL. mainTexture.Sample is equivalent to `texture`.
 
@@ -52,28 +52,23 @@ float4 applyLighting(float2 pos : SV_Position) : SV_Target0 {
 
     float vanillaAO = encodedNormal.a;
 
-    float3 lightVector = normalize(ap.celestial.position);
-    float3 worldLightVector = mul(float3x3(ap.camera.viewInv), lightVector); // Player eye space
-
     float3 blocklight = lightmap.r * blocklightColor;
     float3 skylight = lightmap.g * skylightColor;
     float3 ambient = ambientStrength;
 
-    float3 lightDir = normalize(-worldLightVector);
+    float3 lightPos = normalize(ap.celestial.position);
+    float3 lightDir = mul(float3x3(ap.camera.viewInv), lightPos); // Player eye space
+
     float3 viewDir = normalize(-eyePlayerPos);
     float3 halfwayDir = normalize(lightDir + viewDir);
-    float3 reflectDir = reflect(-worldLightVector, encodedNormal.rgb);
 
-    float diff = max(dot(encodedNormal.rgb, worldLightVector), 0.0);
-    float3 diffuse = diff * sunlightColor;
+    float diff = max(dot(encodedNormal.rgb, lightDir), 0.0);
+    float3 diffuse = diff * lightColor;
 
-    float spec = pow(max(dot(viewDir, halfwayDir), 0.0), 32.0);
-    float3 specular = sunlightColor * spec;
+    float spec = pow(max(dot(encodedNormal.rgb, halfwayDir), 0.0), 32.0);
+    float3 specular = lightColor * spec;
 
     float3 shadow = getShadow(feetPlayerPos, encodedNormal.rgb);
-
-    // float3 dirLight = sunlightColor * max(dot(worldLightVector, encodedNormal.rgb), 0.0) * shadow;
-    // float3 indirLight = ambient + diffuse + specular;
 
     color.rgb *= ambient + shadow * (diffuse + specular);
 

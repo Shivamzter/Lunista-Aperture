@@ -10,7 +10,7 @@ function configureRenderer(renderer) {
   renderer.shadow.distance = 192;
   renderer.shadow.cascades = 4;
   renderer.shadow.entityCascadeCount = 1;
-  renderer.sunPathRotation = 30;
+  renderer.render.sun = false;
 }
 function configurePipeline(pipeline) {
   const renderConfig = pipeline.getRendererConfig();

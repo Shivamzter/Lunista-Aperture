@@ -45,24 +45,29 @@ float3 getShadowScreenPos(float3 playerPos, float3 normal) {
 
 float3 getShadow(float3 playerPos, float3 normal) {
 
+    float3 shadow;
+
     int cascade = calcCascade(playerPos);
     float3 shadowScreenPos = getShadowScreenPos(playerPos, normal);
 
     float3 shadowCoord = float3(shadowScreenPos.xy, cascade);
 
-    float transparentShadow = shadowMapFiltered.SampleCmp(shadowCoord, shadowScreenPos.z).r;
+    float4 shadowColor = texShadowColor.Sample(shadowCoord);
+    shadowColor.rgb * (1.0 - shadowColor.a);
+
+    float transparentShadow = shadowMapFiltered.SampleCmp(shadowCoord, shadowScreenPos.z);
 
     if (transparentShadow == 1.0) {
-        return float3(1.0);
+        shadow = float3(1.0);
+    } else {
+        shadow = shadowColor.rgb; 
     }
 
-    float opaqueShadow = solidShadowMapFiltered.SampleCmp(shadowCoord, shadowScreenPos.z).r;
+    float opaqueShadow = solidShadowMapFiltered.SampleCmp(shadowCoord, shadowScreenPos.z);
 
     if (opaqueShadow == 0.0) {
-        return float3(0.0);
-    }
+        shadow = float3(0.0);
+    } 
 
-    float4 shadowColor = texShadowColor.Sample(shadowCoord);
-
-    return shadowColor.rgb * (1.0 - shadowColor.a);
+    return shadow;
 }
