@@ -9,8 +9,8 @@ function configureRenderer(renderer) {
   renderer.shadow.far = 192;
   renderer.shadow.distance = 192;
   renderer.shadow.cascades = 4;
-  renderer.shadow.entityCascadeCount = 1;
-  renderer.render.sun = false;
+  renderer.shadow.entityCascadeCount = 4;
+  renderer.sunPathRotation = -40;
 }
 function configurePipeline(pipeline) {
   const renderConfig = pipeline.getRendererConfig();
@@ -18,10 +18,11 @@ function configurePipeline(pipeline) {
   let lightmapTex = pipeline.createTexture("lightmapTex").width(screenWidth).height(screenHeight).format(Format.RGBA8).build();
   let encodedNormalTex = pipeline.createTexture("encodedNormalTex").width(screenWidth).height(screenHeight).format(Format.RGBA8).build();
   let labNormalTex = pipeline.createTexture("labNormalTex").width(screenWidth).height(screenHeight).format(Format.RGBA8).build();
+  let labSpecularTex = pipeline.createTexture("labSpecularTex").width(screenWidth).height(screenHeight).format(Format.RGBA8).build();
   let finalTex = pipeline.createTexture("finalTex").width(screenWidth).height(screenHeight).format(Format.RGBA16F).build();
   let texShadowColor;
   texShadowColor = pipeline.createArrayTexture("texShadowColor").format(Format.RGBA8).width(renderConfig.shadow.resolution).height(renderConfig.shadow.resolution).clearColor(0, 0, 0, 0).build();
-  pipeline.createObjectShader("basic", Usage.BASIC).location("objects/basic").exportBool("disableFog", true).target(0, mainTex).target(1, lightmapTex).target(2, encodedNormalTex).target(3, labNormalTex).blendOff(2).blendOff(3).compile();
+  pipeline.createObjectShader("basic", Usage.BASIC).location("objects/basic").exportBool("disableFog", true).target(0, mainTex).target(1, lightmapTex).target(2, encodedNormalTex).target(3, labNormalTex).target(4, labSpecularTex).blendOff(2).blendOff(3).blendOff(4).compile();
   pipeline.createObjectShader("shadow", Usage.SHADOW).location("objects/shadow").target(0, texShadowColor).compile();
   pipeline.createObjectShader("sky", Usage.SKY_TEXTURES).location("objects/basic").target(0, mainTex).exportBool("disableFog", true).compile();
   let postRender = pipeline.forStage(Stage.POST_RENDER);

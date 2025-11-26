@@ -12,11 +12,11 @@ export function configureRenderer(renderer: RendererConfig): void {
   renderer.shadow.far = 192;
   renderer.shadow.distance = 192;
   renderer.shadow.cascades = 4;
-  renderer.shadow.entityCascadeCount = 1;
+  renderer.shadow.entityCascadeCount = 4;
 
-  renderer.render.sun = false;
+  // renderer.render.sun = false;
 
-  // renderer.sunPathRotation = 30.0;
+  renderer.sunPathRotation = -40.0;
 }
 
 // This is where the shaders, buffers, and textures are configured.
@@ -55,6 +55,13 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .format(Format.RGBA8)
     .build();
 
+  let labSpecularTex = pipeline
+    .createTexture("labSpecularTex")
+    .width(screenWidth)
+    .height(screenHeight)
+    .format(Format.RGBA8)
+    .build();
+
   let finalTex = pipeline
     .createTexture("finalTex")
     .width(screenWidth)
@@ -83,8 +90,10 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .target(1, lightmapTex)
     .target(2, encodedNormalTex)
     .target(3, labNormalTex)
+    .target(4, labSpecularTex)
     .blendOff(2)
     .blendOff(3)
+    .blendOff(4)
     .compile();
 
   pipeline

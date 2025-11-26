@@ -1,10 +1,12 @@
 import aperture;
 import lib.shadowSampling;
+import lib.brdf;
 
 Sampler2D mainTex;
 Sampler2D lightmapTex;
 Sampler2D encodedNormalTex;
 Sampler2D labNormalTex;
+Sampler2D labSpecularTex;
 
 Sampler2D mainDepthTex;
 
@@ -18,14 +20,15 @@ struct Output {
 
 static const float3 blocklightColor = float3(1.0, 0.5, 0.08);
 static const float3 skylightColor = float3(0.05, 0.15, 0.3);
-static const float3 lightColor = float3(1.0);
+static const float3 planetLight = float3(1.0);
 static const float3 ambientStrength = float3(0.1);
-static const float specularStrength = 2.0;
 
 float3 projectAndDivide(float4x4 invProj, float3 position) {
     float4 homPos = mul(invProj, float4(position, 1.0));
     return homPos.xyz / homPos.w;
 }
+
+
 
 [[shader("fragment")]]
 float4 applyLighting(float2 pos : SV_Position) : SV_Target0 { 
@@ -52,6 +55,8 @@ float4 applyLighting(float2 pos : SV_Position) : SV_Target0 {
 
     float labAO = labNormal.a;
 
+    float4 labSpecular = labSpecularTex.Sample(texcoord);
+
     float3 screenPos = float3(texcoord, depth);
     float3 ndcPos = screenPos * 2.0 - 1.0;
     float3 viewPos = projectAndDivide(ap.camera.projectionInv, ndcPos);
@@ -60,23 +65,29 @@ float4 applyLighting(float2 pos : SV_Position) : SV_Target0 {
 
     float3 blocklight = lightmap.r * blocklightColor;
     float3 skylight = lightmap.g * skylightColor;
-    float3 ambient = ambientStrength;
 
     float3 lightPos = normalize(ap.celestial.position);
     float3 lightDir = mul(float3x3(ap.camera.viewInv), lightPos);
 
     float3 viewDir = normalize(-eyePlayerPos);
-    float3 halfwayDir = normalize(lightDir + viewDir);
-
-    float diff = max(dot(labNormal.rgb, lightDir), 0.0);
-    float3 diffuse = diff * lightColor;
-
-    float spec = pow(max(dot(labNormal.rgb, halfwayDir), 0.0), 32.0);
-    float3 specular = lightColor * spec;
 
     float3 shadow = getShadow(feetPlayerPos, encodedNormal.rgb);
 
-    color.rgb *= ambient + shadow * (diffuse + specular);
+    float3 albedo = color.rgb;
 
-    return float4(color.rgb, 1.0);
+    // LabPBR
+    float roughness = pow(1.0 - labSpecular.r, 2.0);
+    // roughness = clamp(roughness, 1e-6, 1.0);
+    float reflectance = labSpecular.g;
+
+    float3 brdf = brdfMicrofacet(lightDir, viewDir, labNormal.rgb, roughness, albedo, reflectance, planetLight);
+
+    float3 ambient = ambientStrength * albedo;
+
+    float3 dirLight = brdf * shadow;
+    float3 indirectLight = (blocklight + skylight + ambient) * labAO * vanillaAO;
+    
+    color.rgb *= dirLight + indirectLight;
+
+    return float4((color.rgb), 1.0);
 }

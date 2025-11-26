@@ -69,6 +69,7 @@ struct FragmentOutput {
     float4 lightmap : SV_Target1;
     float4 encodedNormal : SV_Target2;
     float4 labNormal : SV_Target3;
+    float4 labSpecular : SV_Target4;
 }
 
 // The fragment entrypoint takes the output of the vertex shader as input.
@@ -92,6 +93,7 @@ FragmentOutput fragmentMain(VertexOutput input) { // See the comment in gamma.sl
     
     color.rgb = pow(color.rgb, float3(2.2));
 
+    // LabPBR Normal map
     float4 labNormal = normalTex.Sample(input.uv);
     labNormal.xy = labNormal.xy * 2.0 - 1.0;
 
@@ -100,11 +102,15 @@ FragmentOutput fragmentMain(VertexOutput input) { // See the comment in gamma.sl
     labNormal.z = sqrt(1.0 - dot(labNormal.xy, labNormal.xy));
     labNormal.xyz = normalize(mul(input.tbnMatrix, labNormal.xyz));
 
+    // LabPBR Specular Map
+    float4 labSpecular = specularTex.Sample(input.uv);
+
     FragmentOutput output;
     output.color = color;
     output.lightmap = float4(input.light, 0.0, 1.0);
     output.encodedNormal = float4(input.normal * 0.5 + 0.5, input.ao);
     output.labNormal = float4(labNormal.xyz * 0.5 + 0.5, labAO);
+    output.labSpecular = labSpecular;
 
     return output;
 }
