@@ -59,7 +59,7 @@ float3 getShadow(float3 playerPos, float3 normal) {
     if (transparentShadow == 1.0) {
         shadow = float3(1.0);
     } else {
-        shadow = shadowColor.rgb * (1.0 - shadowColor.a); 
+        shadow = transparentShadow + shadowColor.rgb * (1.0 - shadowColor.a); 
     }
 
     float opaqueShadow = solidShadowMapFiltered.SampleCmp(shadowCoord, shadowScreenPos.z);

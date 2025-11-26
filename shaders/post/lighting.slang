@@ -20,7 +20,7 @@ struct Output {
 
 static const float3 blocklightColor = float3(1.0, 0.5, 0.08);
 static const float3 skylightColor = float3(0.05, 0.15, 0.3);
-static const float3 planetLight = float3(1.0);
+static const float3 planetLight = float3(23.47, 21.31, 20.79);
 static const float3 ambientStrength = float3(0.1);
 
 float3 projectAndDivide(float4x4 invProj, float3 position) {
