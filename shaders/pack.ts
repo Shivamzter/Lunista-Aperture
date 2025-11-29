@@ -27,6 +27,9 @@ export function configurePipeline(pipeline: PipelineConfig): void {
 
   const renderConfig = pipeline.getRendererConfig();
 
+  const screenWidth_half = Math.ceil(screenWidth / 2.0);
+  const screenHeight_half = Math.ceil(screenHeight / 2.0);
+
   let mainTex = pipeline
     .createTexture("mainTex")
     .width(screenWidth)
@@ -60,6 +63,15 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .width(screenWidth)
     .height(screenHeight)
     .format(Format.RGBA8)
+    .build();
+
+  let bloomTex = pipeline
+    .createTexture("bloomTex")
+    .width(screenWidth)
+    .height(screenHeight)
+    .format(Format.R11F_G11F_B10F)
+    .clear(true)
+    .mipmap(true)
     .build();
 
   let finalTex = pipeline
@@ -119,7 +131,26 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .createComposite("lighting")
     .location("post/lighting", "applyLighting")
     .target(0, finalTex)
+    .target(1, bloomTex)
     .compile();
+
+  for (let i = 0; i < 6; i++) {
+    postRender
+      .createComposite(`bloomDownsample${i}-${i + 1}`)
+      .location("post/bloomDownsample", "bloomDownsample")
+      .target(0, bloomTex, i + 1)
+      .exportInt("MIP_INDEX", i)
+      .compile();
+  }
+
+  for (let i = 6; i > 0; i -= 1) {
+    postRender
+      .createComposite(`bloomUpsample${i}-${i - 1}`)
+      .location("post/bloomUpsample", "bloomUpsample")
+      .target(0, bloomTex, i - 1)
+      .exportInt("MIP_INDEX", i)
+      .compile();
+  }
 
   // If you have multiple passes relying on each other, you will require memory barriers.
 

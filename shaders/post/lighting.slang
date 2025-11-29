@@ -23,15 +23,24 @@ static const float3 skylightColor = float3(0.05, 0.15, 0.3);
 static const float3 planetLight = float3(23.47, 21.31, 20.79);
 static const float3 ambientStrength = float3(0.1);
 
+static const float EMISSIVE_INTENSITY = 10.0;
+
 float3 projectAndDivide(float4x4 invProj, float3 position) {
     float4 homPos = mul(invProj, float4(position, 1.0));
     return homPos.xyz / homPos.w;
 }
 
+struct FragmentOutput {
+    float4 color : SV_Target0;
+    float4 bloom : SV_Target1;
+}
 
+float RGBtoLuminance(float3 col) {
+  return dot(col.rgb, float3(0.2126, 0.7152, 0.0722));
+}
 
 [[shader("fragment")]]
-float4 applyLighting(float2 pos : SV_Position) : SV_Target0 { 
+FragmentOutput applyLighting(float2 pos : SV_Position) { 
 
     float2 texcoord = pos / ap.game.screenSize;
 
@@ -76,18 +85,28 @@ float4 applyLighting(float2 pos : SV_Position) : SV_Target0 {
     float3 albedo = color.rgb;
 
     // LabPBR
-    float roughness = pow(1.0 - labSpecular.r, 2.0);
+    float labRoughness = pow(1.0 - labSpecular.r, 2.0);
     // roughness = clamp(roughness, 1e-6, 1.0);
-    float reflectance = labSpecular.g;
+    float labReflectance = labSpecular.g;
+    float labEmissive = labSpecular.a;
 
-    float3 brdf = brdfMicrofacet(lightDir, viewDir, labNormal.rgb, roughness, albedo, reflectance, planetLight);
+    float3 brdf = brdfMicrofacet(lightDir, viewDir, labNormal.rgb, labRoughness, albedo, labReflectance, planetLight);
 
     float3 ambient = ambientStrength * albedo;
 
     float3 dirLight = brdf * shadow;
     float3 indirectLight = (blocklight + skylight + ambient) * labAO * vanillaAO;
-    
+
     color.rgb *= dirLight + indirectLight;
 
-    return float4((color.rgb), 1.0);
+    if (int(labEmissive * 255 + 0.5) <= 254) {
+        color.rgb += color.rgb * labEmissive * EMISSIVE_INTENSITY;
+    }
+
+    FragmentOutput output;
+
+    output.color = float4(color.rgb, 1.0);
+    output.bloom = float4(color.rgb, 1.0); 
+
+    return output;
 }
