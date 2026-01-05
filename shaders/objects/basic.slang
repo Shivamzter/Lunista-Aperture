@@ -81,35 +81,37 @@ FragmentOutput fragmentMain(VertexOutput input) { // See the comment in gamma.sl
 
     iris_discardIfNeeded(color); // This helper function is given by Aperture to auto-discard if needed in the object shader.
 
+    color.rgb = pow(color.rgb, float3(2.2));
+
     // Apply fog if needed
     if (!disableFog) {
         float mixValue = (input.distance - ap.world.fogStart) / (ap.world.fogEnd - ap.world.fogStart);
 
-        float renderDistanceFogStart = clamp(ap.world.renderDistance / 10, 4, 64); // Default calculation as of 1.21.10.
+        float renderDistanceFogStart = clamp(ap.world.renderDistance / 10.0, 4.0, 64.0); // Default calculation as of 1.21.10.
         mixValue = max(mixValue, (input.distance - renderDistanceFogStart) / (ap.world.renderDistance - renderDistanceFogStart));
 
         color = lerp(color, ap.world.fogColor, clamp(mixValue, 0.0, 1.0));
     }
-    
-    color.rgb = pow(color.rgb, float3(2.2));
 
-    // LabPBR Normal map
+    // Sample LabPBR Normal map
     float4 labNormal = normalTex.Sample(input.uv);
-    labNormal.xy = labNormal.xy * 2.0 - 1.0;
 
+    // Texture Ambient Occlusion
     float labAO = labNormal.b;
-    
+
+    labNormal.xy = labNormal.xy * 2.0 - 1.0;
     labNormal.z = sqrt(1.0 - dot(labNormal.xy, labNormal.xy));
     labNormal.xyz = normalize(mul(input.tbnMatrix, labNormal.xyz));
 
-    // LabPBR Specular Map
+    // Sample LabPBR Specular Map
     float4 labSpecular = specularTex.Sample(input.uv);
+    labSpecular.r = pow(1.0 - labSpecular.r, 2.0);
 
     FragmentOutput output;
     output.color = color;
-    output.lightmap = float4(input.light, 0.0, 1.0);
-    output.encodedNormal = float4(input.normal * 0.5 + 0.5, input.ao);
-    output.labNormal = float4(labNormal.xyz * 0.5 + 0.5, labAO);
+    output.lightmap = float4(input.light, input.ao, 1.0);
+    output.encodedNormal = float4(input.normal * 0.5 + 0.5, labAO);
+    output.labNormal = float4(labNormal.xyz * 0.5 + 0.5, labNormal.a);
     output.labSpecular = labSpecular;
 
     return output;

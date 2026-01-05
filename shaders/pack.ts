@@ -16,7 +16,7 @@ export function configureRenderer(renderer: RendererConfig): void {
 
   // renderer.render.sun = false;
 
-  renderer.sunPathRotation = -40.0;
+  renderer.sunPathRotation = -23.47;
 }
 
 // This is where the shaders, buffers, and textures are configured.
@@ -69,7 +69,7 @@ export function configurePipeline(pipeline: PipelineConfig): void {
     .createTexture("bloomTex")
     .width(screenWidth)
     .height(screenHeight)
-    .format(Format.R11F_G11F_B10F)
+    .format(Format.RGB16F)
     .clear(true)
     .mipmap(true)
     .build();

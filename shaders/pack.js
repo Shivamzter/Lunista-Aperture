@@ -10,7 +10,7 @@ function configureRenderer(renderer) {
   renderer.shadow.distance = 192;
   renderer.shadow.cascades = 4;
   renderer.shadow.entityCascadeCount = 4;
-  renderer.sunPathRotation = -40;
+  renderer.sunPathRotation = -23.47;
 }
 function configurePipeline(pipeline) {
   const renderConfig = pipeline.getRendererConfig();
@@ -21,7 +21,7 @@ function configurePipeline(pipeline) {
   let encodedNormalTex = pipeline.createTexture("encodedNormalTex").width(screenWidth).height(screenHeight).format(Format.RGBA8).build();
   let labNormalTex = pipeline.createTexture("labNormalTex").width(screenWidth).height(screenHeight).format(Format.RGBA8).build();
   let labSpecularTex = pipeline.createTexture("labSpecularTex").width(screenWidth).height(screenHeight).format(Format.RGBA8).build();
-  let bloomTex = pipeline.createTexture("bloomTex").width(screenWidth).height(screenHeight).format(Format.R11F_G11F_B10F).clear(true).mipmap(true).build();
+  let bloomTex = pipeline.createTexture("bloomTex").width(screenWidth).height(screenHeight).format(Format.RGB16F).clear(true).mipmap(true).build();
   let finalTex = pipeline.createTexture("finalTex").width(screenWidth).height(screenHeight).format(Format.RGBA16F).build();
   let texShadowColor;
   texShadowColor = pipeline.createArrayTexture("texShadowColor").format(Format.RGBA8).width(renderConfig.shadow.resolution).height(renderConfig.shadow.resolution).clearColor(0, 0, 0, 0).build();

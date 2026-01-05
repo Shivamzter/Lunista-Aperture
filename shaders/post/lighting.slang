@@ -50,58 +50,59 @@ FragmentOutput applyLighting(float2 pos : SV_Position) {
         discard;
     }
 
+    // Sample main scene
     float4 color = mainTex[int2(pos)];
 
-    float2 lightmap = lightmapTex[int2(pos)].rg;
+    // Sample lightmap
+    float3 lightmap = lightmapTex[int2(pos)].rgb;
+    float vanillaAO = pow(lightmap.b, float(2.2));
 
+    // sample encoded normal
     float4 encodedNormal = encodedNormalTex[int2(pos)];
-    encodedNormal.rgb = normalize((encodedNormal.rgb - 0.5) * 2.0);
+    encodedNormal.xyz = normalize((encodedNormal.xyz - 0.5) * 2.0);
 
-    float vanillaAO = encodedNormal.a;
+    float labAO = encodedNormal.a;
 
+    // sample labPBR normal map
     float4 labNormal = labNormalTex[int2(pos)];
     labNormal.xyz = normalize((labNormal.xyz - 0.5) * 2.0);
 
-    float labAO = labNormal.a;
-
+    // Sample labPBR specular map
     float4 labSpecular = labSpecularTex.Sample(texcoord);
 
+    float labRoughness = max(labSpecular.r, 0.04);
+    float labReflectance = labSpecular.g;
+    // float labEmissive = labSpecular.a;
+
+    // for Lighting
+    float3 blocklight = lightmap.r * blocklightColor;
+    float3 skylight = lightmap.g * skylightColor;
+    float3 ambient = ambientStrength * color.rgb;
+
+    // Space conversions
     float3 screenPos = float3(texcoord, depth);
     float3 ndcPos = screenPos * 2.0 - 1.0;
     float3 viewPos = projectAndDivide(ap.camera.projectionInv, ndcPos);
     float3 feetPlayerPos = mul(ap.camera.viewInv, float4(viewPos, 1.0)).xyz;
-    float3 eyePlayerPos = mul(float3x3(ap.camera.viewInv), viewPos);
+    float3 eyePlayerPos = feetPlayerPos - ap.camera.viewInv[3].xyz;
 
-    float3 blocklight = lightmap.r * blocklightColor;
-    float3 skylight = lightmap.g * skylightColor;
-
-    float3 lightPos = normalize(ap.celestial.position);
-    float3 lightDir = mul(float3x3(ap.camera.viewInv), lightPos);
+    float3 lightPos = mul(float3x3(ap.camera.viewInv), ap.celestial.position);
+    float3 lightDir = normalize(lightPos);
 
     float3 viewDir = normalize(-eyePlayerPos);
 
     float3 shadow = getShadow(feetPlayerPos, encodedNormal.rgb);
-
-    float3 albedo = color.rgb;
-
-    // LabPBR
-    float labRoughness = pow(1.0 - labSpecular.r, 2.0);
-    // roughness = clamp(roughness, 1e-6, 1.0);
-    float labReflectance = labSpecular.g;
-    float labEmissive = labSpecular.a;
-
-    float3 brdf = brdfMicrofacet(lightDir, viewDir, labNormal.rgb, labRoughness, albedo, labReflectance, planetLight);
-
-    float3 ambient = ambientStrength * albedo;
+    
+    float3 brdf = brdfMicrofacet(lightDir, viewDir, labNormal.rgb, labRoughness, color.rgb, labReflectance, planetLight);
 
     float3 dirLight = brdf * shadow;
     float3 indirectLight = (blocklight + skylight + ambient) * labAO * vanillaAO;
 
     color.rgb *= dirLight + indirectLight;
 
-    if (int(labEmissive * 255 + 0.5) <= 254) {
-        color.rgb += color.rgb * labEmissive * EMISSIVE_INTENSITY;
-    }
+    // if (int(labEmissive * 255 + 0.5) <= 254) {
+    //     color.rgb += color.rgb * labEmissive * EMISSIVE_INTENSITY;
+    // }
 
     FragmentOutput output;
 
